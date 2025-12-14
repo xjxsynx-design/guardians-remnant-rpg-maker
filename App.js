@@ -39,3 +39,34 @@ function createProject() {
 
 // Load default view
 showProjects();
+function openTool(tool) {
+  const main = document.getElementById('main');
+
+  if (!main) {
+    alert('Main container not found');
+    return;
+  }
+
+  switch (tool) {
+    case 'projects':
+      main.innerHTML = '<h2>Projects</h2><p>Projects editor coming next.</p>';
+      break;
+
+    case 'editor':
+      main.innerHTML = '<h2>Editor</h2><p>Main editor coming next.</p>';
+      break;
+
+    case 'title':
+      main.innerHTML = '<h2>Title Screen</h2><p>Title Screen Editor loaded.</p>';
+      break;
+
+    case 'play':
+      main.innerHTML = '<h2>Play</h2><p>Game preview coming soon.</p>';
+      break;
+
+    default:
+      main.innerHTML = '<p>Unknown tool.</p>';
+  }
+}
+
+
