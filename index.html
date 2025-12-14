@@ -46,10 +46,10 @@
   <p style="text-align:center;">Mobile RPG Maker</p>
 
   <div class="toolbar">
-    <button onclick="show('projects')">Projects</button>
-    <button onclick="show('editor')">Editor</button>
-    <button onclick="show('title')">Title Screen</button>
-    <button onclick="show('play')">Play</button>
+    <button onclick="showTool('projects')">Projects</button>
+<button onclick="showTool('editor')">Editor</button>
+<button onclick="showTool('title')">Title Screen</button>
+<button onclick="showTool('play')">Play</button>
   </div>
 
   <div id="main">
@@ -77,6 +77,31 @@
       }
     }
   </script>
+<div id="tool-area" style="margin-top:20px; padding:16px; background:#eee; border-radius:12px;">
+  <h2>Tool Area</h2>
+  <p>Select a tool above.</p>
+</div>
 
-</body>
+<script>
+  function showTool(name) {
+    const area = document.getElementById("tool-area");
+
+    if (name === "projects") {
+      area.innerHTML = "<h2>Projects</h2><p>No projects yet. This will list your games.</p>";
+    }
+
+    if (name === "editor") {
+      area.innerHTML = "<h2>Editor</h2><p>Map editor coming next.</p>";
+    }
+
+    if (name === "title") {
+      area.innerHTML = "<h2>Title Screen</h2><p>Edit your game title here.</p>";
+    }
+
+    if (name === "play") {
+      area.innerHTML = "<h2>Play</h2><p>Game preview will launch here.</p>";
+    }
+  }
+</script>
+</body>u
 </html>
