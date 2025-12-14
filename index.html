@@ -23,5 +23,43 @@
 <main id="workspace"></main>
 
 <script src="app.js"></script>
+
+<script>
+/* =========================
+   PROJECT STORAGE SYSTEM
+========================= */
+
+const ProjectStore = {
+  key: "gr_projects",
+
+  getAll() {
+    return JSON.parse(localStorage.getItem(this.key) || "[]");
+  },
+
+  saveAll(projects) {
+    localStorage.setItem(this.key, JSON.stringify(projects));
+  },
+
+  create(name) {
+    const projects = this.getAll();
+    const project = {
+      id: Date.now(),
+      name,
+      created: new Date().toISOString(),
+      title: {
+        text: "Guardians' Remnant",
+        subtitle: "A New Adventure"
+      }
+    };
+    projects.push(project);
+    this.saveAll(projects);
+    return project;
+  },
+
+  get(id) {
+    return this.getAll().find(p => p.id === id);
+  }
+};
 </body>
+</script>
 </html>
