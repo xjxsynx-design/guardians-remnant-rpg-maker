@@ -1,65 +1,82 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RPG Creator</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>RPG Creator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: white;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 10px 15px;
+      border-radius: 20px;
+      border: none;
+      font-size: 14px;
+    }
+
+    #main {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 18px;
+    }
+  </style>
 </head>
+
 <body>
 
-<header class="top">
   <h1>RPG Creator</h1>
-  <p>Mobile RPG Maker</p>
-</header>
+  <p style="text-align:center;">Mobile RPG Maker</p>
 
-<nav class="toolbar">
-  <button onclick="openTool('projects')">Projects</button>
-  <button onclick="openTool('editor')">Editor</button>
-  <button onclick="openTool('title')">Title Screen</button>
-  <button onclick="openTool('play')">Play</button>
-</nav>
-<div id="main"></div>
-<main id="workspace"></main>
+  <div class="toolbar">
+    <button onclick="show('projects')">Projects</button>
+    <button onclick="show('editor')">Editor</button>
+    <button onclick="show('title')">Title Screen</button>
+    <button onclick="show('play')">Play</button>
+  </div>
 
-<script src="app.js"></script>
+  <div id="main">
+    Tap a button above 👆
+  </div>
 
-<script>
-/* =========================
-   PROJECT STORAGE SYSTEM
-========================= */
+  <script>
+    function show(screen) {
+      const main = document.getElementById('main');
 
-const ProjectStore = {
-  key: "gr_projects",
-
-  getAll() {
-    return JSON.parse(localStorage.getItem(this.key) || "[]");
-  },
-
-  saveAll(projects) {
-    localStorage.setItem(this.key, JSON.stringify(projects));
-  },
-
-  create(name) {
-    const projects = this.getAll();
-    const project = {
-      id: Date.now(),
-      name,
-      created: new Date().toISOString(),
-      title: {
-        text: "Guardians' Remnant",
-        subtitle: "A New Adventure"
+      if (screen === 'projects') {
+        main.innerHTML = '📁 Projects screen works!';
       }
-    };
-    projects.push(project);
-    this.saveAll(projects);
-    return project;
-  },
 
-  get(id) {
-    return this.getAll().find(p => p.id === id);
-  }
-};
+      if (screen === 'editor') {
+        main.innerHTML = '🛠 Editor screen works!';
+      }
+
+      if (screen === 'title') {
+        main.innerHTML = '🎮 Title Screen editor works!';
+      }
+
+      if (screen === 'play') {
+        main.innerHTML = '▶️ Play mode works!';
+      }
+    }
+  </script>
+
 </body>
-</script>
 </html>
