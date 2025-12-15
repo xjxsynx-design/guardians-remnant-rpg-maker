@@ -1,66 +1,52 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <title>Guardians' Remnant – Map Editor</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body{margin:0;font-family:system-ui;background:#111;color:#eee;text-align:center}
-header{padding:16px}
-nav{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
-button{padding:10px 14px;border-radius:16px;border:none}
-#workspace{display:flex;flex-direction:column;align-items:center;margin-top:12px}
-#library{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:10px}
-.tile{width:48px;height:48px;border:2px solid #444;border-radius:6px;cursor:pointer}
+#library{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:12px}
+.tile{width:48px;height:48px;border:2px solid #444;border-radius:6px;cursor:pointer;background-size:cover}
 .tile.selected{border-color:#00ffaa}
-#grid{display:grid;grid-template-columns:repeat(10,48px);gap:2px;margin-top:10px}
+#grid{display:grid;grid-template-columns:repeat(10,48px);gap:2px;justify-content:center}
 .cell{width:48px;height:48px;background:#222;border:1px solid #333}
 </style>
 </head>
 <body>
+<h2>Guardians’ Remnant – Map Editor</h2>
 
-<header>
-<h1>Map Editor</h1>
-<p>Guardians’ Remnant – Zelda-esque, modern ruins</p>
-</header>
+<input type="file" id="upload" accept="image/*"><br><br>
 
-<nav>
-<input type="file" id="upload" accept="image/*">
-<button onclick="clearMap()">Clear Map</button>
-</nav>
-
-<div id="workspace">
-<h3>Tile Library</h3>
 <div id="library"></div>
-
-<h3>Map Grid</h3>
 <div id="grid"></div>
-</div>
 
 <script>
 const tiles = [
-  {name:'grass', color:'#2f7f4f'},
-  {name:'stone', color:'#555'},
-  {name:'ruin', color:'#7a6a58'},
-  {name:'tech', color:'#2aa6a6'}
+  'assets/tiles/grass.png',
+  'assets/tiles/ruins.png',
+  'assets/tiles/desert.png',
+  'assets/tiles/snow.png',
+  'assets/tiles/tundra.png',
+  'assets/tiles/wetlands.png',
+  'assets/tiles/tech.png'
 ];
 
-let selectedTile = null;
+let selected = null;
+const lib = document.getElementById('library');
 
-const library = document.getElementById('library');
-tiles.forEach(t=>{
-  const d=document.createElement('div');
-  d.className='tile';
-  d.style.background=t.color;
-  d.title=t.name;
-  d.onclick=()=>selectTile(d,t.color);
-  library.appendChild(d);
+tiles.forEach(src=>{
+  const t=document.createElement('div');
+  t.className='tile';
+  t.style.backgroundImage=`url(${src})`;
+  t.onclick=()=>selectTile(t, src);
+  lib.appendChild(t);
 });
 
-function selectTile(el,color){
+function selectTile(el, src){
   document.querySelectorAll('.tile').forEach(t=>t.classList.remove('selected'));
   el.classList.add('selected');
-  selectedTile=color;
+  selected = src;
 }
 
 const grid=document.getElementById('grid');
@@ -68,29 +54,23 @@ for(let i=0;i<100;i++){
   const c=document.createElement('div');
   c.className='cell';
   c.onclick=()=>{
-    if(selectedTile)c.style.background=selectedTile;
+    if(selected)c.style.backgroundImage=`url(${selected})`;
   };
   grid.appendChild(c);
 }
 
 document.getElementById('upload').onchange=e=>{
   const file=e.target.files[0];
-  if(!file)return;
-  const reader=new FileReader();
-  reader.onload=ev=>{
-    const img=document.createElement('div');
-    img.className='tile';
-    img.style.background=`url(${ev.target.result}) center/cover`;
-    img.onclick=()=>selectTile(img, img.style.background);
-    library.appendChild(img);
+  const r=new FileReader();
+  r.onload=ev=>{
+    const t=document.createElement('div');
+    t.className='tile';
+    t.style.backgroundImage=`url(${ev.target.result})`;
+    t.onclick=()=>selectTile(t, ev.target.result);
+    lib.appendChild(t);
   };
-  reader.readAsDataURL(file);
+  r.readAsDataURL(file);
 };
-
-function clearMap(){
-  document.querySelectorAll('.cell').forEach(c=>c.style.background='#222');
-}
 </script>
-
 </body>
 </html>
