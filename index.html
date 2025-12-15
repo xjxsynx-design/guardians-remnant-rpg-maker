@@ -1,84 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>RPG Creator</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont;
-      background: #f5f5f5;
-      color: #111;
-      text-align: center;
-    }
-    header { padding: 20px; }
-    nav {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    nav button {
-      padding: 10px 14px;
-      border-radius: 20px;
-      border: none;
-      background: #ddd;
-      font-size: 14px;
-    }
-    nav button.active {
-      background: #333;
-      color: #fff;
-    }
-    section {
-      display: none;
-      padding: 20px;
-    }
-    section.active { display: block; }
-    .box {
-      background: #e0e0e0;
-      padding: 20px;
-      border-radius: 12px;
-      margin-top: 20px;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Guardians' Remnant – Map Editor</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{margin:0;font-family:system-ui;background:#111;color:#eee;text-align:center}
+header{padding:16px}
+nav{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+button{padding:10px 14px;border-radius:16px;border:none}
+#workspace{display:flex;flex-direction:column;align-items:center;margin-top:12px}
+#library{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:10px}
+.tile{width:48px;height:48px;border:2px solid #444;border-radius:6px;cursor:pointer}
+.tile.selected{border-color:#00ffaa}
+#grid{display:grid;grid-template-columns:repeat(10,48px);gap:2px;margin-top:10px}
+.cell{width:48px;height:48px;background:#222;border:1px solid #333}
+</style>
 </head>
 <body>
 
 <header>
-  <h1>RPG Creator</h1>
-  <p>Mobile RPG Maker</p>
+<h1>Map Editor</h1>
+<p>Guardians’ Remnant – Zelda-esque, modern ruins</p>
 </header>
 
 <nav>
-  <button onclick="show('projects', this)">Projects</button>
-  <button onclick="show('editor', this)">Editor</button>
-  <button onclick="show('title', this)">Title Screen</button>
-  <button onclick="show('play', this)">Play</button>
+<input type="file" id="upload" accept="image/*">
+<button onclick="clearMap()">Clear Map</button>
 </nav>
 
-<section id="projects" class="active">
-  <div class="box">Projects screen (working)</div>
-</section>
+<div id="workspace">
+<h3>Tile Library</h3>
+<div id="library"></div>
 
-<section id="editor">
-  <div class="box">Map / Editor screen (working)</div>
-</section>
-
-<section id="title">
-  <div class="box">Title Screen Editor (working)</div>
-</section>
-
-<section id="play">
-  <div class="box">Play test screen (working)</div>
-</section>
+<h3>Map Grid</h3>
+<div id="grid"></div>
+</div>
 
 <script>
-function show(id, btn) {
-  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  btn.classList.add('active');
+const tiles = [
+  {name:'grass', color:'#2f7f4f'},
+  {name:'stone', color:'#555'},
+  {name:'ruin', color:'#7a6a58'},
+  {name:'tech', color:'#2aa6a6'}
+];
+
+let selectedTile = null;
+
+const library = document.getElementById('library');
+tiles.forEach(t=>{
+  const d=document.createElement('div');
+  d.className='tile';
+  d.style.background=t.color;
+  d.title=t.name;
+  d.onclick=()=>selectTile(d,t.color);
+  library.appendChild(d);
+});
+
+function selectTile(el,color){
+  document.querySelectorAll('.tile').forEach(t=>t.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedTile=color;
+}
+
+const grid=document.getElementById('grid');
+for(let i=0;i<100;i++){
+  const c=document.createElement('div');
+  c.className='cell';
+  c.onclick=()=>{
+    if(selectedTile)c.style.background=selectedTile;
+  };
+  grid.appendChild(c);
+}
+
+document.getElementById('upload').onchange=e=>{
+  const file=e.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const img=document.createElement('div');
+    img.className='tile';
+    img.style.background=`url(${ev.target.result}) center/cover`;
+    img.onclick=()=>selectTile(img, img.style.background);
+    library.appendChild(img);
+  };
+  reader.readAsDataURL(file);
+};
+
+function clearMap(){
+  document.querySelectorAll('.cell').forEach(c=>c.style.background='#222');
 }
 </script>
 
