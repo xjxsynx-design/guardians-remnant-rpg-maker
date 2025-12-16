@@ -2,39 +2,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Guardians' Remnant – Map Editor</title>
-  <link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Guardians' Remnant</h1>
+  <h1>Guardians' Remnant – Phase 1C</h1>
 
   <div class="toolbar">
     <button id="paintBtn" class="active">Paint</button>
     <button id="eraseBtn">Erase</button>
-
-    <select id="layerSelect">
-      <option value="ground">Ground</option>
-    </select>
-
-    <select id="gridSize">
-      <option value="10">Small</option>
-      <option value="15" selected>Medium</option>
-      <option value="20">Large</option>
-    </select>
-
-    <button id="undoBtn">Undo</button>
-    <button id="redoBtn">Redo</button>
-    <button id="clearBtn">Clear</button>
   </div>
 
-  <div id="tiles">
-    <div class="tile grass" data-tile="grass"></div>
-    <div class="tile grass2" data-tile="grass2"></div>
+  <div id="mapContainer">
+    <canvas id="map"></canvas>
   </div>
-
-  <canvas id="map"></canvas>
 
   <script src="script.js"></script>
 </body>
