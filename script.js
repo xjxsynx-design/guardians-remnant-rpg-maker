@@ -1,10 +1,10 @@
-const gridSize = 10;
+const size = 10;
 let selectedTile = "grass";
 let currentLayer = "ground";
 
 const mapData = {
-  ground: Array(gridSize*gridSize).fill(null),
-  objects: Array(gridSize*gridSize).fill(null)
+  ground: Array(size*size).fill(null),
+  objects: Array(size*size).fill(null)
 };
 
 const grid = document.getElementById("grid");
@@ -16,9 +16,19 @@ function selectTile(tile) {
   selectedTile = tile;
 }
 
-function renderGrid() {
+function tileColor(tile) {
+  return {
+    grass:"#3a7f3a",
+    sand:"#c9b26b",
+    water:"#2f6f7f",
+    stone:"#888",
+    ruin:"#5a5a5a"
+  }[tile] || "#222";
+}
+
+function render() {
   grid.innerHTML = "";
-  for (let i = 0; i < gridSize*gridSize; i++) {
+  for (let i = 0; i < size*size; i++) {
     const cell = document.createElement("div");
     cell.className = "cell";
 
@@ -30,42 +40,32 @@ function renderGrid() {
 
     cell.onclick = () => {
       mapData[currentLayer][i] = selectedTile;
-      renderGrid();
+      render();
     };
+
     grid.appendChild(cell);
   }
 }
 
-function tileColor(tile) {
-  return {
-    grass:"#3a7f3a",
-    sand:"#c9b26b",
-    stone:"#888",
-    water:"#2f6f7f",
-    ruin:"#5a5a5a"
-  }[tile] || "#222";
-}
-
 function saveMap() {
-  const data = JSON.stringify(mapData);
-  const blob = new Blob([data], {type:"application/json"});
+  const blob = new Blob([JSON.stringify(mapData)], {type:"application/json"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "map_layers.json";
+  a.download = "map_2_layers.json";
   a.click();
 }
 
 function loadMap() {
-  const file = document.getElementById("fileInput").files[0];
+  const file = document.getElementById("loadFile").files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
+  const r = new FileReader();
+  r.onload = e => {
     const data = JSON.parse(e.target.result);
     mapData.ground = data.ground;
     mapData.objects = data.objects;
-    renderGrid();
+    render();
   };
-  reader.readAsText(file);
+  r.readAsText(file);
 }
 
-renderGrid();
+render();

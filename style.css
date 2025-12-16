@@ -1,5 +1,5 @@
 body {
-  background:#0f0f0f;
+  background:#111;
   color:#fff;
   font-family:system-ui;
   text-align:center;
@@ -25,15 +25,15 @@ body {
 
 .grass { background:#3a7f3a; }
 .sand { background:#c9b26b; }
-.stone { background:#888; }
 .water { background:#2f6f7f; }
+.stone { background:#888; }
 .ruin { background:#5a5a5a; }
 
 #grid {
   display:grid;
   grid-template-columns:repeat(10, 32px);
-  justify-content:center;
   gap:2px;
+  justify-content:center;
   margin:20px auto;
 }
 

@@ -1,31 +1,30 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Guardians’ Remnant – Layered Map Editor</title>
-<link rel="stylesheet" href="style.css"/>
+<meta charset="UTF-8">
+<title>Guardians’ Remnant – Map Editor</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <h1>Guardians’ Remnant – Map Editor</h1>
-<p class="subtitle">Layered System (Ground / Objects)</p>
 
 <div class="controls">
   <select id="layerSelect">
     <option value="ground">Ground Layer</option>
-    <option value="objects">Object Layer</option>
+    <option value="objects">Objects Layer</option>
   </select>
 
   <button onclick="saveMap()">Save Map</button>
-  <input type="file" id="fileInput"/>
+  <input type="file" id="loadFile">
   <button onclick="loadMap()">Load Map</button>
 </div>
 
 <div class="palette">
   <div class="tile grass" onclick="selectTile('grass')"></div>
   <div class="tile sand" onclick="selectTile('sand')"></div>
-  <div class="tile stone" onclick="selectTile('stone')"></div>
   <div class="tile water" onclick="selectTile('water')"></div>
+  <div class="tile stone" onclick="selectTile('stone')"></div>
   <div class="tile ruin" onclick="selectTile('ruin')"></div>
 </div>
 
