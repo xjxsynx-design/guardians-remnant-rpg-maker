@@ -8,11 +8,13 @@ const mapData = {
 };
 
 const grid = document.getElementById("grid");
-const layerSelect = document.getElementById("layerSelect");
 const toggleGround = document.getElementById("toggleGround");
 const toggleObjects = document.getElementById("toggleObjects");
 
-layerSelect.onchange = () => currentLayer = layerSelect.value;
+document.querySelectorAll('input[name="layer"]').forEach(r => {
+  r.onchange = () => currentLayer = r.value;
+});
+
 toggleGround.onchange = render;
 toggleObjects.onchange = render;
 
@@ -39,7 +41,6 @@ function render() {
     if (toggleGround.checked && mapData.ground[i]) {
       cell.style.background = tileColor(mapData.ground[i]);
     }
-
     if (toggleObjects.checked && mapData.objects[i]) {
       cell.style.background = tileColor(mapData.objects[i]);
     }

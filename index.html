@@ -7,35 +7,40 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<h1>Guardians’ Remnant – Map Editor</h1>
 
-<div class="controls">
-  <select id="layerSelect">
-    <option value="ground">Ground Layer</option>
-    <option value="objects">Objects Layer</option>
-  </select>
+<header>
+  <h1>Guardians’ Remnant</h1>
+  <div class="top-actions">
+    <button onclick="saveMap()">Save</button>
+    <input type="file" id="loadFile">
+    <button onclick="loadMap()">Load</button>
+  </div>
+</header>
 
-  <label>
-    <input type="checkbox" id="toggleGround" checked> Show Ground
-  </label>
-  <label>
-    <input type="checkbox" id="toggleObjects" checked> Show Objects
-  </label>
+<section class="panel">
+  <h2>Layers</h2>
+  <label><input type="radio" name="layer" value="ground" checked> Ground</label>
+  <label><input type="radio" name="layer" value="objects"> Objects</label>
+  <br>
+  <label><input type="checkbox" id="toggleGround" checked> Show Ground</label>
+  <label><input type="checkbox" id="toggleObjects" checked> Show Objects</label>
+</section>
 
-  <button onclick="saveMap()">Save</button>
-  <input type="file" id="loadFile">
-  <button onclick="loadMap()">Load</button>
-</div>
+<section class="panel">
+  <h2>Tiles</h2>
+  <div class="palette">
+    <div class="tile grass" onclick="selectTile('grass')"></div>
+    <div class="tile sand" onclick="selectTile('sand')"></div>
+    <div class="tile water" onclick="selectTile('water')"></div>
+    <div class="tile stone" onclick="selectTile('stone')"></div>
+    <div class="tile ruin" onclick="selectTile('ruin')"></div>
+  </div>
+</section>
 
-<div class="palette">
-  <div class="tile grass" onclick="selectTile('grass')"></div>
-  <div class="tile sand" onclick="selectTile('sand')"></div>
-  <div class="tile water" onclick="selectTile('water')"></div>
-  <div class="tile stone" onclick="selectTile('stone')"></div>
-  <div class="tile ruin" onclick="selectTile('ruin')"></div>
-</div>
-
-<div id="grid"></div>
+<section class="panel">
+  <h2>Map</h2>
+  <div id="grid"></div>
+</section>
 
 <script src="script.js"></script>
 </body>

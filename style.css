@@ -2,29 +2,39 @@ body {
   background:#111;
   color:#fff;
   font-family:system-ui;
+  margin:0;
+}
+
+header {
+  background:#1b1b1b;
+  padding:10px;
   text-align:center;
 }
 
-.controls {
-  margin:10px;
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-  justify-content:center;
+.top-actions {
+  margin-top:6px;
+}
+
+button {
+  padding:6px 10px;
+  margin:4px;
+}
+
+.panel {
+  padding:10px;
+  border-bottom:1px solid #333;
 }
 
 .palette {
   display:flex;
-  justify-content:center;
   gap:10px;
-  margin:10px;
+  flex-wrap:wrap;
 }
 
 .tile {
-  width:40px;
-  height:40px;
+  width:42px;
+  height:42px;
   border:2px solid #444;
-  cursor:pointer;
 }
 
 .grass { background:#3a7f3a; }
@@ -38,7 +48,7 @@ body {
   grid-template-columns:repeat(10, 32px);
   gap:2px;
   justify-content:center;
-  margin:20px auto;
+  margin:10px auto;
 }
 
 .cell {
