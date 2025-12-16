@@ -15,9 +15,16 @@
     <option value="objects">Objects Layer</option>
   </select>
 
-  <button onclick="saveMap()">Save Map</button>
+  <label>
+    <input type="checkbox" id="toggleGround" checked> Show Ground
+  </label>
+  <label>
+    <input type="checkbox" id="toggleObjects" checked> Show Objects
+  </label>
+
+  <button onclick="saveMap()">Save</button>
   <input type="file" id="loadFile">
-  <button onclick="loadMap()">Load Map</button>
+  <button onclick="loadMap()">Load</button>
 </div>
 
 <div class="palette">

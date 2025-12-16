@@ -9,8 +9,12 @@ const mapData = {
 
 const grid = document.getElementById("grid");
 const layerSelect = document.getElementById("layerSelect");
+const toggleGround = document.getElementById("toggleGround");
+const toggleObjects = document.getElementById("toggleObjects");
 
 layerSelect.onchange = () => currentLayer = layerSelect.value;
+toggleGround.onchange = render;
+toggleObjects.onchange = render;
 
 function selectTile(tile) {
   selectedTile = tile;
@@ -32,11 +36,13 @@ function render() {
     const cell = document.createElement("div");
     cell.className = "cell";
 
-    const g = mapData.ground[i];
-    const o = mapData.objects[i];
+    if (toggleGround.checked && mapData.ground[i]) {
+      cell.style.background = tileColor(mapData.ground[i]);
+    }
 
-    if (g) cell.style.background = tileColor(g);
-    if (o) cell.style.background = tileColor(o);
+    if (toggleObjects.checked && mapData.objects[i]) {
+      cell.style.background = tileColor(mapData.objects[i]);
+    }
 
     cell.onclick = () => {
       mapData[currentLayer][i] = selectedTile;
@@ -51,7 +57,7 @@ function saveMap() {
   const blob = new Blob([JSON.stringify(mapData)], {type:"application/json"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "map_2_layers.json";
+  a.download = "map.json";
   a.click();
 }
 
