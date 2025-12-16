@@ -1,109 +1,36 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Guardians’ Remnant – Map Editor</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-body{margin:0;font-family:system-ui;background:#111;color:#eee;text-align:center}
-#library{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:10px}
-.tile{width:48px;height:48px;border:2px solid #444;border-radius:6px;cursor:pointer;background-size:cover}
-.tile.selected{border-color:#00ffaa}
-#grid{display:grid;grid-template-columns:repeat(10,48px);gap:2px;justify-content:center;margin-top:10px}
-.cell{width:48px;height:48px;background:#222;border:1px solid #333;background-size:cover}
-button{margin:6px;padding:10px 14px;font-size:16px;border-radius:6px;border:none}
-button.primary{background:#00ffaa;color:#000}
-button.secondary{background:#444;color:#eee}
-#loadFile{display:none}
-</style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Guardians’ Remnant – Layered Map Editor</title>
+<link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-<h2>Guardians’ Remnant – Map Editor</h2>
+<h1>Guardians’ Remnant – Map Editor</h1>
+<p class="subtitle">Layered System (Ground / Objects)</p>
 
-<input type="file" id="upload" accept="image/*"><br>
+<div class="controls">
+  <select id="layerSelect">
+    <option value="ground">Ground Layer</option>
+    <option value="objects">Object Layer</option>
+  </select>
 
-<button class="primary" onclick="saveMap()">Save Map</button>
-<button class="secondary" onclick="document.getElementById('loadFile').click()">Load Map</button>
-<input type="file" id="loadFile" accept=".json">
+  <button onclick="saveMap()">Save Map</button>
+  <input type="file" id="fileInput"/>
+  <button onclick="loadMap()">Load Map</button>
+</div>
 
-<div id="library"></div>
+<div class="palette">
+  <div class="tile grass" onclick="selectTile('grass')"></div>
+  <div class="tile sand" onclick="selectTile('sand')"></div>
+  <div class="tile stone" onclick="selectTile('stone')"></div>
+  <div class="tile water" onclick="selectTile('water')"></div>
+  <div class="tile ruin" onclick="selectTile('ruin')"></div>
+</div>
+
 <div id="grid"></div>
 
-<script>
-const tiles = [
-  'assets/tiles/grass.png',
-  'assets/tiles/ruins.png',
-  'assets/tiles/desert.png',
-  'assets/tiles/snow.png',
-  'assets/tiles/tundra.png',
-  'assets/tiles/wetlands.png',
-  'assets/tiles/tech.png'
-];
-
-let selected=null;
-let mapData = Array(100).fill(null);
-
-const lib=document.getElementById('library');
-tiles.forEach(src=>{
-  const t=document.createElement('div');
-  t.className='tile';
-  t.style.backgroundImage=`url(${src})`;
-  t.onclick=()=>selectTile(t,src);
-  lib.appendChild(t);
-});
-
-function selectTile(el,src){
-  document.querySelectorAll('.tile').forEach(t=>t.classList.remove('selected'));
-  el.classList.add('selected');
-  selected=src;
-}
-
-const grid=document.getElementById('grid');
-for(let i=0;i<100;i++){
-  const c=document.createElement('div');
-  c.className='cell';
-  c.onclick=()=>{
-    if(selected){
-      c.style.backgroundImage=`url(${selected})`;
-      mapData[i]=selected;
-    }
-  };
-  grid.appendChild(c);
-}
-
-function saveMap(){
-  const data = JSON.stringify(mapData);
-  const blob = new Blob([data],{type:'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'guardians_remnant_map.json';
-  a.click();
-}
-
-document.getElementById('loadFile').onchange=e=>{
-  const file=e.target.files[0];
-  const r=new FileReader();
-  r.onload=ev=>{
-    mapData = JSON.parse(ev.target.result);
-    document.querySelectorAll('.cell').forEach((c,i)=>{
-      c.style.backgroundImage = mapData[i] ? `url(${mapData[i]})` : '';
-    });
-  };
-  r.readAsText(file);
-};
-
-document.getElementById('upload').onchange=e=>{
-  const file=e.target.files[0];
-  const r=new FileReader();
-  r.onload=ev=>{
-    const t=document.createElement('div');
-    t.className='tile';
-    t.style.backgroundImage=`url(${ev.target.result})`;
-    t.onclick=()=>selectTile(t,ev.target.result);
-    lib.appendChild(t);
-  };
-  r.readAsDataURL(file);
-};
-</script>
+<script src="script.js"></script>
 </body>
 </html>

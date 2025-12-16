@@ -1,0 +1,45 @@
+body {
+  background:#0f0f0f;
+  color:#fff;
+  font-family:system-ui;
+  text-align:center;
+}
+
+.controls {
+  margin:10px;
+}
+
+.palette {
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  margin:10px;
+}
+
+.tile {
+  width:40px;
+  height:40px;
+  border:2px solid #444;
+  cursor:pointer;
+}
+
+.grass { background:#3a7f3a; }
+.sand { background:#c9b26b; }
+.stone { background:#888; }
+.water { background:#2f6f7f; }
+.ruin { background:#5a5a5a; }
+
+#grid {
+  display:grid;
+  grid-template-columns:repeat(10, 32px);
+  justify-content:center;
+  gap:2px;
+  margin:20px auto;
+}
+
+.cell {
+  width:32px;
+  height:32px;
+  background:#222;
+  border:1px solid #333;
+}
