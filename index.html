@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Guardians’ Remnant – Map Editor (Save & Load)</title>
+<title>Guardians’ Remnant – Map Editor</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body{margin:0;font-family:system-ui;background:#111;color:#eee;text-align:center}
@@ -11,14 +11,19 @@ body{margin:0;font-family:system-ui;background:#111;color:#eee;text-align:center
 .tile.selected{border-color:#00ffaa}
 #grid{display:grid;grid-template-columns:repeat(10,48px);gap:2px;justify-content:center;margin-top:10px}
 .cell{width:48px;height:48px;background:#222;border:1px solid #333;background-size:cover}
-button{margin:6px;padding:8px 12px;font-size:16px}
+button{margin:6px;padding:10px 14px;font-size:16px;border-radius:6px;border:none}
+button.primary{background:#00ffaa;color:#000}
+button.secondary{background:#444;color:#eee}
+#loadFile{display:none}
 </style>
 </head>
 <body>
 <h2>Guardians’ Remnant – Map Editor</h2>
 
 <input type="file" id="upload" accept="image/*"><br>
-<button onclick="saveMap()">Save Map</button>
+
+<button class="primary" onclick="saveMap()">Save Map</button>
+<button class="secondary" onclick="document.getElementById('loadFile').click()">Load Map</button>
 <input type="file" id="loadFile" accept=".json">
 
 <div id="library"></div>
