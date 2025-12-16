@@ -1,78 +1,114 @@
-const size = 10;
-let selectedTile = "grass";
-let currentLayer = "ground";
+const tileSize = 32;
+const mapSize = 10;
+const canvas = document.getElementById("map");
+const ctx = canvas.getContext("2d");
 
-const mapData = {
-  ground: Array(size*size).fill(null),
-  objects: Array(size*size).fill(null)
+let currentLayer = "ground";
+let currentTile = null;
+
+const tiles = {
+  ground: [
+    {id:"grass", src:"tiles/ground/grass.png"},
+    {id:"sand", src:"tiles/ground/sand.png"},
+    {id:"stone", src:"tiles/ground/stone.png"},
+    {id:"water", src:"tiles/ground/water.png"},
+  ],
+  objects: [
+    {id:"ruin", src:"tiles/objects/ruin.png"},
+    {id:"tree", src:"tiles/objects/tree.png"},
+  ]
 };
 
-const grid = document.getElementById("grid");
-const toggleGround = document.getElementById("toggleGround");
-const toggleObjects = document.getElementById("toggleObjects");
+const mapData = {
+  ground: Array(mapSize*mapSize).fill(null),
+  objects: Array(mapSize*mapSize).fill(null)
+};
+
+function resize() {
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+  draw();
+}
+
+window.addEventListener("resize", resize);
 
 document.querySelectorAll('input[name="layer"]').forEach(r => {
-  r.onchange = () => currentLayer = r.value;
+  r.onchange = () => {
+    currentLayer = r.value;
+    buildPalette();
+  };
 });
 
-toggleGround.onchange = render;
-toggleObjects.onchange = render;
-
-function selectTile(tile) {
-  selectedTile = tile;
+function buildPalette() {
+  const pal = document.getElementById("palette");
+  pal.innerHTML = "";
+  tiles[currentLayer].forEach(t => {
+    const img = document.createElement("img");
+    img.src = t.src;
+    img.className = "tile";
+    img.onclick = () => currentTile = t.id;
+    pal.appendChild(img);
+  });
 }
 
-function tileColor(tile) {
-  return {
-    grass:"#3a7f3a",
-    sand:"#c9b26b",
-    water:"#2f6f7f",
-    stone:"#888",
-    ruin:"#5a5a5a"
-  }[tile] || "#222";
-}
+function draw() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const scale = Math.floor(canvas.width / (mapSize * tileSize));
+  const size = tileSize * scale;
 
-function render() {
-  grid.innerHTML = "";
-  for (let i = 0; i < size*size; i++) {
-    const cell = document.createElement("div");
-    cell.className = "cell";
+  for (let i=0;i<mapData.ground.length;i++) {
+    const x = (i % mapSize) * size;
+    const y = Math.floor(i / mapSize) * size;
 
-    if (toggleGround.checked && mapData.ground[i]) {
-      cell.style.background = tileColor(mapData.ground[i]);
-    }
-    if (toggleObjects.checked && mapData.objects[i]) {
-      cell.style.background = tileColor(mapData.objects[i]);
-    }
+    ["ground","objects"].forEach(layer => {
+      const id = mapData[layer][i];
+      if (id) {
+        const tile = tiles[layer].find(t=>t.id===id);
+        if (tile) {
+          const img = new Image();
+          img.src = tile.src;
+          img.onload = () => ctx.drawImage(img, x, y, size, size);
+        }
+      }
+    });
 
-    cell.onclick = () => {
-      mapData[currentLayer][i] = selectedTile;
-      render();
-    };
-
-    grid.appendChild(cell);
+    ctx.strokeStyle="#333";
+    ctx.strokeRect(x,y,size,size);
   }
 }
 
-function saveMap() {
+canvas.addEventListener("click", e => {
+  if (!currentTile) return;
+  const rect = canvas.getBoundingClientRect();
+  const scale = Math.floor(canvas.width / (mapSize * tileSize));
+  const size = tileSize * scale;
+  const x = Math.floor((e.clientX-rect.left)/size);
+  const y = Math.floor((e.clientY-rect.top)/size);
+  const idx = y*mapSize+x;
+  mapData[currentLayer][idx] = currentTile;
+  draw();
+});
+
+function saveProject() {
   const blob = new Blob([JSON.stringify(mapData)], {type:"application/json"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "map.json";
+  a.download = "world.json";
   a.click();
 }
 
-function loadMap() {
-  const file = document.getElementById("loadFile").files[0];
-  if (!file) return;
+function loadProject() {
+  const f = document.getElementById("loadFile").files[0];
+  if (!f) return;
   const r = new FileReader();
   r.onload = e => {
-    const data = JSON.parse(e.target.result);
-    mapData.ground = data.ground;
-    mapData.objects = data.objects;
-    render();
+    const d = JSON.parse(e.target.result);
+    mapData.ground = d.ground;
+    mapData.objects = d.objects;
+    draw();
   };
-  r.readAsText(file);
+  r.readAsText(f);
 }
 
-render();
+buildPalette();
+resize();
