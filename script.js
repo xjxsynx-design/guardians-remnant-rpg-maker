@@ -1,34 +1,34 @@
+const grid = document.getElementById("grid");
+const paintBtn = document.getElementById("paintBtn");
+const eraseBtn = document.getElementById("eraseBtn");
 
-const grid = document.getElementById('grid');
-const paintBtn = document.getElementById('paintBtn');
-const eraseBtn = document.getElementById('eraseBtn');
+let mode = "paint";
 
-let mode = 'paint';
+// Create grid
+for (let i = 0; i < 256; i++) {
+  const cell = document.createElement("div");
+  cell.classList.add("cell");
 
-// Create grid cells
-for (let i = 0; i < 100; i++) {
-  const cell = document.createElement('div');
-  cell.className = 'cell';
-
-  cell.addEventListener('click', () => {
-    if (mode === 'paint') {
-      cell.style.background = '#3fa76a';
+  cell.addEventListener("click", () => {
+    if (mode === "paint") {
+      cell.classList.add("filled");
     } else {
-      cell.style.background = '#222';
+      cell.classList.remove("filled");
     }
   });
 
   grid.appendChild(cell);
 }
 
-paintBtn.onclick = () => {
-  mode = 'paint';
-  paintBtn.classList.add('active');
-  eraseBtn.classList.remove('active');
-};
+// Tool buttons
+paintBtn.addEventListener("click", () => {
+  mode = "paint";
+  paintBtn.classList.add("active");
+  eraseBtn.classList.remove("active");
+});
 
-eraseBtn.onclick = () => {
-  mode = 'erase';
-  eraseBtn.classList.add('active');
-  paintBtn.classList.remove('active');
-};
+eraseBtn.addEventListener("click", () => {
+  mode = "erase";
+  eraseBtn.classList.add("active");
+  paintBtn.classList.remove("active");
+});
