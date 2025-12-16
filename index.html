@@ -2,21 +2,24 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Guardians' Remnant – Map Editor</title>
+<title>Guardians’ Remnant – Map Editor (Save & Load)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body{margin:0;font-family:system-ui;background:#111;color:#eee;text-align:center}
-#library{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:12px}
+#library{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:10px}
 .tile{width:48px;height:48px;border:2px solid #444;border-radius:6px;cursor:pointer;background-size:cover}
 .tile.selected{border-color:#00ffaa}
-#grid{display:grid;grid-template-columns:repeat(10,48px);gap:2px;justify-content:center}
-.cell{width:48px;height:48px;background:#222;border:1px solid #333}
+#grid{display:grid;grid-template-columns:repeat(10,48px);gap:2px;justify-content:center;margin-top:10px}
+.cell{width:48px;height:48px;background:#222;border:1px solid #333;background-size:cover}
+button{margin:6px;padding:8px 12px;font-size:16px}
 </style>
 </head>
 <body>
 <h2>Guardians’ Remnant – Map Editor</h2>
 
-<input type="file" id="upload" accept="image/*"><br><br>
+<input type="file" id="upload" accept="image/*"><br>
+<button onclick="saveMap()">Save Map</button>
+<input type="file" id="loadFile" accept=".json">
 
 <div id="library"></div>
 <div id="grid"></div>
@@ -32,21 +35,22 @@ const tiles = [
   'assets/tiles/tech.png'
 ];
 
-let selected = null;
-const lib = document.getElementById('library');
+let selected=null;
+let mapData = Array(100).fill(null);
 
+const lib=document.getElementById('library');
 tiles.forEach(src=>{
   const t=document.createElement('div');
   t.className='tile';
   t.style.backgroundImage=`url(${src})`;
-  t.onclick=()=>selectTile(t, src);
+  t.onclick=()=>selectTile(t,src);
   lib.appendChild(t);
 });
 
-function selectTile(el, src){
+function selectTile(el,src){
   document.querySelectorAll('.tile').forEach(t=>t.classList.remove('selected'));
   el.classList.add('selected');
-  selected = src;
+  selected=src;
 }
 
 const grid=document.getElementById('grid');
@@ -54,10 +58,34 @@ for(let i=0;i<100;i++){
   const c=document.createElement('div');
   c.className='cell';
   c.onclick=()=>{
-    if(selected)c.style.backgroundImage=`url(${selected})`;
+    if(selected){
+      c.style.backgroundImage=`url(${selected})`;
+      mapData[i]=selected;
+    }
   };
   grid.appendChild(c);
 }
+
+function saveMap(){
+  const data = JSON.stringify(mapData);
+  const blob = new Blob([data],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'guardians_remnant_map.json';
+  a.click();
+}
+
+document.getElementById('loadFile').onchange=e=>{
+  const file=e.target.files[0];
+  const r=new FileReader();
+  r.onload=ev=>{
+    mapData = JSON.parse(ev.target.result);
+    document.querySelectorAll('.cell').forEach((c,i)=>{
+      c.style.backgroundImage = mapData[i] ? `url(${mapData[i]})` : '';
+    });
+  };
+  r.readAsText(file);
+};
 
 document.getElementById('upload').onchange=e=>{
   const file=e.target.files[0];
@@ -66,7 +94,7 @@ document.getElementById('upload').onchange=e=>{
     const t=document.createElement('div');
     t.className='tile';
     t.style.backgroundImage=`url(${ev.target.result})`;
-    t.onclick=()=>selectTile(t, ev.target.result);
+    t.onclick=()=>selectTile(t,ev.target.result);
     lib.appendChild(t);
   };
   r.readAsDataURL(file);
