@@ -1,76 +1,81 @@
 
-const canvas = document.getElementById("map");
-const ctx = canvas.getContext("2d");
-const size = 10;
-const tileSize = 40;
-let tool = "paint";
-let selectedColor = "#3a7";
+const canvas = document.getElementById('map');
+const ctx = canvas.getContext('2d');
 
-const biomes = {
-  grass: ["#3a7","#5c9"],
-  desert: ["#caa","#dbb"],
-  snow: ["#eef","#ccd"],
-  ruins: ["#777","#999"],
-  water: ["#36a","#58c"]
-};
+let gridSize = 15;
+let tileSize = 32;
+let mode = 'paint';
+let selectedTile = '#3fa76a';
 
-let map = Array(size*size).fill(null);
+let history = [];
+let future = [];
 
-function drawGrid(){
+function resize() {
+  canvas.width = gridSize * tileSize;
+  canvas.height = gridSize * tileSize;
+  drawGrid();
+}
+
+function drawGrid() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  for(let y=0;y<size;y++){
-    for(let x=0;x<size;x++){
-      const i = y*size+x;
-      if(map[i]){
-        ctx.fillStyle = map[i];
-        ctx.fillRect(x*tileSize,y*tileSize,tileSize,tileSize);
-      }
-      ctx.strokeStyle="#333";
+  for(let x=0;x<gridSize;x++){
+    for(let y=0;y<gridSize;y++){
+      ctx.strokeStyle = '#333';
       ctx.strokeRect(x*tileSize,y*tileSize,tileSize,tileSize);
     }
   }
 }
 
-function buildTiles(){
-  const cont = document.getElementById("tiles");
-  cont.innerHTML="";
-  biomes[document.getElementById("biomeSelect").value].forEach(c=>{
-    const d=document.createElement("div");
-    d.className="tile";
-    d.style.background=c;
-    d.onclick=()=>selectedColor=c;
-    cont.appendChild(d);
-  });
+function saveState() {
+  history.push(ctx.getImageData(0,0,canvas.width,canvas.height));
+  if(history.length > 10) history.shift();
+  future = [];
 }
 
-canvas.onclick=e=>{
-  const r=canvas.getBoundingClientRect();
-  const x=Math.floor((e.clientX-r.left)/tileSize);
-  const y=Math.floor((e.clientY-r.top)/tileSize);
-  const i=y*size+x;
-  map[i]= tool==="erase"? null:selectedColor;
+canvas.addEventListener('click', e => {
+  const x = Math.floor(e.offsetX / tileSize) * tileSize;
+  const y = Math.floor(e.offsetY / tileSize) * tileSize;
+  saveState();
+  if(mode === 'paint') {
+    ctx.fillStyle = selectedTile;
+    ctx.fillRect(x,y,tileSize,tileSize);
+  } else {
+    ctx.clearRect(x,y,tileSize,tileSize);
+  }
+  ctx.strokeStyle='#333';
+  ctx.strokeRect(x,y,tileSize,tileSize);
+});
+
+document.querySelectorAll('.tile').forEach(t=>{
+  t.onclick=()=> selectedTile = t.style.background;
+});
+
+paintBtn.onclick=()=>{mode='paint'; paintBtn.classList.add('active'); eraseBtn.classList.remove('active');}
+eraseBtn.onclick=()=>{mode='erase'; eraseBtn.classList.add('active'); paintBtn.classList.remove('active');}
+
+undoBtn.onclick=()=>{
+  if(history.length){
+    future.push(ctx.getImageData(0,0,canvas.width,canvas.height));
+    ctx.putImageData(history.pop(),0,0);
+  }
+}
+
+redoBtn.onclick=()=>{
+  if(future.length){
+    history.push(ctx.getImageData(0,0,canvas.width,canvas.height));
+    ctx.putImageData(future.pop(),0,0);
+  }
+}
+
+clearBtn.onclick=()=>{
+  saveState();
   drawGrid();
-};
+}
 
-document.getElementById("paintBtn").onclick=()=>tool="paint";
-document.getElementById("eraseBtn").onclick=()=>tool="erase";
-document.getElementById("biomeSelect").onchange=buildTiles;
+gridSizeSelect = document.getElementById('gridSize');
+gridSizeSelect.onchange=()=>{
+  gridSize = parseInt(gridSizeSelect.value);
+  resize();
+}
 
-document.getElementById("saveBtn").onclick=()=>{
-  const data = JSON.stringify(map);
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(new Blob([data],{type:"application/json"}));
-  a.download="map.json";
-  a.click();
-};
-
-document.getElementById("loadInput").onchange=e=>{
-  const f=e.target.files[0];
-  if(!f)return;
-  const r=new FileReader();
-  r.onload=()=>{ map=JSON.parse(r.result); drawGrid(); };
-  r.readAsText(f);
-};
-
-buildTiles();
-drawGrid();
+resize();
