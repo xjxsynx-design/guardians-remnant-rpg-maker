@@ -1,28 +1,31 @@
+* {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
-  background: #111;
-  color: #fff;
-  font-family: system-ui, sans-serif;
+  padding: 20px;
+  background: #0f0f0f;
+  color: #ffffff;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   text-align: center;
 }
 
 h1 {
-  margin: 16px 0;
+  margin-bottom: 15px;
 }
 
-.toolbar {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 12px;
+.tools {
+  margin-bottom: 15px;
 }
 
 button {
-  padding: 8px 16px;
-  border-radius: 12px;
+  padding: 10px 18px;
+  border-radius: 20px;
   border: none;
   font-size: 16px;
+  cursor: pointer;
+  margin: 0 6px;
 }
 
 button.active {
@@ -30,18 +33,30 @@ button.active {
   color: #000;
 }
 
+button:not(.active) {
+  background: #e0e0e0;
+  color: #000;
+}
+
+/* GRID */
 #grid {
+  width: 320px;
+  height: 320px;
+  margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(10, 32px);
-  grid-template-rows: repeat(10, 32px);
-  gap: 1px;
-  justify-content: center;
-  margin: 0 auto 20px;
+  grid-template-columns: repeat(16, 1fr);
+  grid-template-rows: repeat(16, 1fr);
+  background: #222;
+  border: 2px solid #555;
 }
 
 .cell {
-  width: 32px;
-  height: 32px;
-  background: #222;
   border: 1px solid #333;
+  background: #1a1a1a;
 }
+
+.cell.filled {
+  background: #4caf50;
+}
+
+
