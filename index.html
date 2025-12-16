@@ -1,34 +1,34 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Guardians' Remnant – World Builder</title>
+<title>Guardians' Remnant – Map Editor</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
 <header>
-  <h1>Guardians' Remnant – World Builder</h1>
-  <button onclick="saveProject()">Save</button>
-  <input type="file" id="loadFile">
-  <button onclick="loadProject()">Load</button>
+  <h1>Guardians' Remnant</h1>
+  <div class="file-controls">
+    <button onclick="saveMap()">Save</button>
+    <button onclick="loadMap()">Load</button>
+  </div>
 </header>
 
-<section>
-  <h2>Layer</h2>
-  <label><input type="radio" name="layer" value="ground" checked> Ground</label>
-  <label><input type="radio" name="layer" value="objects"> Objects</label>
+<section class="tools">
+  <button id="paintBtn" class="active" onclick="setTool('paint')">🖌️ Paint</button>
+  <button id="eraseBtn" onclick="setTool('erase')">🧽 Erase</button>
+
+  <select id="layerSelect">
+    <option value="ground">Ground</option>
+    <option value="objects">Objects</option>
+  </select>
 </section>
 
-<section>
-  <h2>Tiles</h2>
-  <div id="palette"></div>
-</section>
+<canvas id="map" width="320" height="320"></canvas>
 
-<section>
-  <h2>Map</h2>
-  <canvas id="map"></canvas>
-</section>
+<input type="file" id="fileInput" style="display:none" onchange="handleLoad(event)">
 
 <script src="script.js"></script>
 </body>

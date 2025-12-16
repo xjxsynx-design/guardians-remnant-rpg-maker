@@ -1,114 +1,49 @@
-const tileSize = 32;
-const mapSize = 10;
-const canvas = document.getElementById("map");
-const ctx = canvas.getContext("2d");
+const size=10,tile=32;
+let tool='paint',layer='ground';
+let map={ground:Array(size*size).fill(0),objects:Array(size*size).fill(0)};
+const ctx=document.getElementById('map').getContext('2d');
 
-let currentLayer = "ground";
-let currentTile = null;
+document.getElementById('layerSelect').onchange=e=>layer=e.target.value;
 
-const tiles = {
-  ground: [
-    {id:"grass", src:"tiles/ground/grass.png"},
-    {id:"sand", src:"tiles/ground/sand.png"},
-    {id:"stone", src:"tiles/ground/stone.png"},
-    {id:"water", src:"tiles/ground/water.png"},
-  ],
-  objects: [
-    {id:"ruin", src:"tiles/objects/ruin.png"},
-    {id:"tree", src:"tiles/objects/tree.png"},
-  ]
+function setTool(t){
+ tool=t;
+ paintBtn.classList.toggle('active',t==='paint');
+ eraseBtn.classList.toggle('active',t==='erase');
+}
+
+mapCanvas=document.getElementById('map');
+mapCanvas.onclick=e=>{
+ const x=Math.floor(e.offsetX/tile);
+ const y=Math.floor(e.offsetY/tile);
+ const i=y*size+x;
+ if(tool==='paint') map[layer][i]=1;
+ if(tool==='erase') map[layer][i]=0;
+ draw();
 };
 
-const mapData = {
-  ground: Array(mapSize*mapSize).fill(null),
-  objects: Array(mapSize*mapSize).fill(null)
-};
-
-function resize() {
-  canvas.width = canvas.offsetWidth;
-  canvas.height = canvas.offsetHeight;
-  draw();
+function draw(){
+ ctx.clearRect(0,0,320,320);
+ for(let y=0;y<size;y++)for(let x=0;x<size;x++){
+  const i=y*size+x;
+  if(map.ground[i]){ctx.fillStyle='#6c9';ctx.fillRect(x*tile,y*tile,tile,tile);}
+  if(map.objects[i]){ctx.fillStyle='#555';ctx.fillRect(x*tile+8,y*tile+8,16,16);}
+  ctx.strokeRect(x*tile,y*tile,tile,tile);
+ }
 }
 
-window.addEventListener("resize", resize);
-
-document.querySelectorAll('input[name="layer"]').forEach(r => {
-  r.onchange = () => {
-    currentLayer = r.value;
-    buildPalette();
-  };
-});
-
-function buildPalette() {
-  const pal = document.getElementById("palette");
-  pal.innerHTML = "";
-  tiles[currentLayer].forEach(t => {
-    const img = document.createElement("img");
-    img.src = t.src;
-    img.className = "tile";
-    img.onclick = () => currentTile = t.id;
-    pal.appendChild(img);
-  });
+function saveMap(){
+ const blob=new Blob([JSON.stringify(map)],{type:'application/json'});
+ const a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);
+ a.download='map.json';
+ a.click();
 }
 
-function draw() {
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  const scale = Math.floor(canvas.width / (mapSize * tileSize));
-  const size = tileSize * scale;
-
-  for (let i=0;i<mapData.ground.length;i++) {
-    const x = (i % mapSize) * size;
-    const y = Math.floor(i / mapSize) * size;
-
-    ["ground","objects"].forEach(layer => {
-      const id = mapData[layer][i];
-      if (id) {
-        const tile = tiles[layer].find(t=>t.id===id);
-        if (tile) {
-          const img = new Image();
-          img.src = tile.src;
-          img.onload = () => ctx.drawImage(img, x, y, size, size);
-        }
-      }
-    });
-
-    ctx.strokeStyle="#333";
-    ctx.strokeRect(x,y,size,size);
-  }
+function loadMap(){fileInput.click()}
+function handleLoad(e){
+ const r=new FileReader();
+ r.onload=()=>{map=JSON.parse(r.result);draw()}
+ r.readAsText(e.target.files[0]);
 }
 
-canvas.addEventListener("click", e => {
-  if (!currentTile) return;
-  const rect = canvas.getBoundingClientRect();
-  const scale = Math.floor(canvas.width / (mapSize * tileSize));
-  const size = tileSize * scale;
-  const x = Math.floor((e.clientX-rect.left)/size);
-  const y = Math.floor((e.clientY-rect.top)/size);
-  const idx = y*mapSize+x;
-  mapData[currentLayer][idx] = currentTile;
-  draw();
-});
-
-function saveProject() {
-  const blob = new Blob([JSON.stringify(mapData)], {type:"application/json"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "world.json";
-  a.click();
-}
-
-function loadProject() {
-  const f = document.getElementById("loadFile").files[0];
-  if (!f) return;
-  const r = new FileReader();
-  r.onload = e => {
-    const d = JSON.parse(e.target.result);
-    mapData.ground = d.ground;
-    mapData.objects = d.objects;
-    draw();
-  };
-  r.readAsText(f);
-}
-
-buildPalette();
-resize();
+draw();
