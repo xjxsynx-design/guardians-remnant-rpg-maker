@@ -1,1 +1,39 @@
-<!-- World Builder with Biome Categories -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guardians' Remnant – Map Editor</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h1>Guardians' Remnant</h1>
+
+<div class="toolbar">
+  <button id="paintBtn">🖌 Paint</button>
+  <button id="eraseBtn">🧽 Erase</button>
+
+  <select id="layerSelect">
+    <option value="ground">Ground</option>
+    <option value="objects">Objects</option>
+  </select>
+
+  <select id="biomeSelect">
+    <option value="grass">Grassland</option>
+    <option value="desert">Desert</option>
+    <option value="snow">Snow</option>
+    <option value="ruins">Ruins</option>
+    <option value="water">Water</option>
+  </select>
+
+  <button id="saveBtn">Save</button>
+  <input type="file" id="loadInput">
+</div>
+
+<div id="tiles"></div>
+<canvas id="map" width="400" height="400"></canvas>
+
+<script src="script.js"></script>
+</body>
+</html>
