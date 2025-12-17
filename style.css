@@ -1,6 +1,4 @@
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
@@ -11,24 +9,24 @@ body {
   text-align: center;
 }
 
-.palette {
-  margin-bottom: 12px;
+.biomes, .palette {
+  margin-bottom: 10px;
 }
 
-.palette button {
+button {
   margin: 4px;
-  padding: 10px 16px;
-  border-radius: 16px;
+  padding: 8px 14px;
+  border-radius: 14px;
   border: none;
   font-size: 14px;
 }
 
-.palette button.active {
+button.active {
   background: #4caf50;
   color: #000;
 }
 
-.palette button:not(.active) {
+button:not(.active) {
   background: #ccc;
   color: #000;
 }
@@ -50,6 +48,6 @@ body {
 }
 
 .cell.grass { background: #4caf50; }
-.cell.ruins { background: #888; }
 .cell.sand { background: #d8c27a; }
+.cell.ruins { background: #888; }
 .cell.snow { background: #e6f1ff; }
