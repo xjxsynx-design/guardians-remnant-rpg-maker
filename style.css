@@ -1,53 +1,7 @@
-* { box-sizing: border-box; }
-
-body {
-  margin: 0;
-  padding: 16px;
-  background: #0f0f0f;
-  color: #fff;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  text-align: center;
-}
-
-.biomes, .palette {
-  margin-bottom: 10px;
-}
-
-button {
-  margin: 4px;
-  padding: 8px 14px;
-  border-radius: 14px;
-  border: none;
-  font-size: 14px;
-}
-
-button.active {
-  background: #4caf50;
-  color: #000;
-}
-
-button:not(.active) {
-  background: #ccc;
-  color: #000;
-}
-
-#grid {
-  width: 320px;
-  height: 320px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(16, 1fr);
-  grid-template-rows: repeat(16, 1fr);
-  background: #222;
-  border: 2px solid #555;
-}
-
-.cell {
-  border: 1px solid #333;
-  background: #1a1a1a;
-}
-
-.cell.grass { background: #4caf50; }
-.cell.sand { background: #d8c27a; }
-.cell.ruins { background: #888; }
-.cell.snow { background: #e6f1ff; }
+body{margin:0;font-family:sans-serif;background:#111;color:#eee}
+header{text-align:center;padding:10px;background:#1b1b1b}
+#biomes,#palette{display:flex;gap:6px;padding:8px;background:#222;overflow-x:auto}
+button{padding:6px 10px;border:none;background:#444;color:white;border-radius:4px}
+button.active{background:#6aa84f}
+#map{display:grid;grid-template-columns:repeat(10,1fr);gap:1px;padding:10px}
+.tile{width:100%;aspect-ratio:1;background:#333}
