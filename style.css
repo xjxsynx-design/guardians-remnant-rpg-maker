@@ -11,21 +11,16 @@ body {
   text-align: center;
 }
 
-h1 {
-  margin-bottom: 12px;
-}
-
 .palette {
   margin-bottom: 12px;
 }
 
 .palette button {
   margin: 4px;
-  padding: 8px 14px;
-  border-radius: 14px;
+  padding: 10px 16px;
+  border-radius: 16px;
   border: none;
   font-size: 14px;
-  cursor: pointer;
 }
 
 .palette button.active {
@@ -34,7 +29,7 @@ h1 {
 }
 
 .palette button:not(.active) {
-  background: #ddd;
+  background: #ccc;
   color: #000;
 }
 
@@ -55,6 +50,6 @@ h1 {
 }
 
 .cell.grass { background: #4caf50; }
-.cell.ruins { background: #8d8d8d; }
-.cell.sand  { background: #d8c27a; }
-.cell.snow  { background: #e6f1ff; }
+.cell.ruins { background: #888; }
+.cell.sand { background: #d8c27a; }
+.cell.snow { background: #e6f1ff; }
