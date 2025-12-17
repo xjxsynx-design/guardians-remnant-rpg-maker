@@ -4,41 +4,40 @@
 
 body {
   margin: 0;
-  padding: 20px;
+  padding: 16px;
   background: #0f0f0f;
-  color: #ffffff;
+  color: #fff;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   text-align: center;
 }
 
 h1 {
-  margin-bottom: 15px;
+  margin-bottom: 12px;
 }
 
-.tools {
-  margin-bottom: 15px;
+.palette {
+  margin-bottom: 12px;
 }
 
-button {
-  padding: 10px 18px;
-  border-radius: 20px;
+.palette button {
+  margin: 4px;
+  padding: 8px 14px;
+  border-radius: 14px;
   border: none;
-  font-size: 16px;
+  font-size: 14px;
   cursor: pointer;
-  margin: 0 6px;
 }
 
-button.active {
+.palette button.active {
   background: #4caf50;
   color: #000;
 }
 
-button:not(.active) {
-  background: #e0e0e0;
+.palette button:not(.active) {
+  background: #ddd;
   color: #000;
 }
 
-/* GRID */
 #grid {
   width: 320px;
   height: 320px;
@@ -55,8 +54,7 @@ button:not(.active) {
   background: #1a1a1a;
 }
 
-.cell.filled {
-  background: #4caf50;
-}
-
-
+.cell.grass { background: #4caf50; }
+.cell.ruins { background: #8d8d8d; }
+.cell.sand  { background: #d8c27a; }
+.cell.snow  { background: #e6f1ff; }
