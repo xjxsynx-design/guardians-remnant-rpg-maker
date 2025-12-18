@@ -1,6 +1,6 @@
 body{margin:0;font-family:sans-serif;background:#111;color:#eee}
 header{text-align:center;padding:10px;background:#1b1b1b}
-#status{text-align:center;padding:6px;background:#181818}
+#status{text-align:center;padding:6px;background:#181818;font-size:14px}
 #biomes,#palette{display:flex;gap:8px;padding:10px;background:#222;overflow-x:auto}
 button{padding:8px 12px;border:none;background:#444;color:white;border-radius:6px}
 button.active{background:#4caf50;box-shadow:0 0 8px rgba(76,175,80,.7);font-weight:bold}
