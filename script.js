@@ -1,4 +1,3 @@
-
 const BIOMES = {
   Overworld: ["Grass","Dirt","Stone"],
   Ruins: ["Stone","Moss","Dirt"],
@@ -22,49 +21,65 @@ const paletteBar = document.getElementById("palette");
 const map = document.getElementById("map");
 const status = document.getElementById("status");
 
-function updateStatus(){
+function updateStatus() {
   status.textContent = `Biome: ${currentBiome} | Tile: ${currentTile}`;
 }
 
-function buildBiomes(){
+// Build Biomes Buttons
+function buildBiomes() {
   biomeBar.innerHTML = "";
   Object.keys(BIOMES).forEach(b => {
     const btn = document.createElement("button");
     btn.textContent = b;
     if (b === currentBiome) btn.classList.add("active");
-    btn.onclick = () => {
+
+    btn.addEventListener('click', () => {
+      // Remove active from previous
+      document.querySelectorAll('#biomes button').forEach(but => but.classList.remove('active'));
+      // Set active on clicked
+      btn.classList.add('active');
       currentBiome = b;
       currentTile = BIOMES[b][0];
-      buildBiomes();
-      buildPalette();
+      buildPalette(); // Update palette for new biome
       updateStatus();
-    };
+    });
+
     biomeBar.appendChild(btn);
   });
 }
 
-function buildPalette(){
+// Build Palette Tiles
+function buildPalette() {
   paletteBar.innerHTML = "";
   BIOMES[currentBiome].forEach(t => {
     const d = document.createElement("div");
     d.className = "palette-tile";
     d.style.background = TILES[t];
+
     if (t === currentTile) d.classList.add("selected");
-    d.onclick = () => {
+
+    d.addEventListener('click', () => {
+      // Remove selected from other tiles
+      document.querySelectorAll('.palette-tile').forEach(tile => tile.classList.remove('selected'));
+      // Set selected on clicked
+      d.classList.add('selected');
       currentTile = t;
-      buildPalette();
       updateStatus();
-    };
+    });
+
     paletteBar.appendChild(d);
   });
 }
 
-function buildMap(){
+// Build Map
+function buildMap() {
   map.innerHTML = "";
-  for(let i=0;i<100;i++){
+  for(let i=0; i<100; i++){
     const d = document.createElement("div");
     d.className = "tile";
-    d.onclick = () => d.style.background = TILES[currentTile];
+    d.addEventListener('click', () => {
+      d.style.background = TILES[currentTile];
+    });
     map.appendChild(d);
   }
 }
