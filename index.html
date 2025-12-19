@@ -1,33 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Guardians' Remnant – World Builder</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Guardians' Remnant – World Editor</title>
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header><h1>World Builder</h1></header>
 
-  <div id="status" aria-live="polite"></div>
+<header>
+  <h1>Guardians’ Remnant — World Editor</h1>
+</header>
 
-  <section id="modeToggle" aria-label="Mode">
-    <button id="terrainBtn" class="mode-btn" type="button">Terrain</button>
-    <button id="objectBtn" class="mode-btn" type="button">Objects</button>
-    <button id="eraserBtn" class="mode-btn" type="button">Eraser</button>
-  </section>
-
-  <section id="saveLoad" aria-label="Save and load">
-    <button id="saveBtn" type="button">Save Map</button>
-    <button id="loadBtn" type="button">Load Map</button>
-  </section>
-
-  <div id="workspace">
-    <section id="biomes" aria-label="Biomes"></section>
-    <section id="palette" aria-label="Palette"></section>
-    <section id="map" aria-label="Map"></section>
+<div id="toolbar">
+  <div class="tool-group">
+    <button id="terrainBtn" class="tool active">Terrain</button>
+    <button id="objectBtn" class="tool">Objects</button>
+    <button id="eraserBtn" class="tool danger">Eraser</button>
   </div>
 
-  <script src="script.js"></script>
+  <div id="biomes"></div>
+  <div id="palette"></div>
+</div>
+
+<div id="map-container">
+  <div id="map"></div>
+</div>
+
+<footer>
+  <button id="saveBtn">Save</button>
+  <button id="loadBtn">Load</button>
+</footer>
+
+<script src="script.js"></script>
 </body>
 </html>
