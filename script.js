@@ -36,9 +36,11 @@ terrainBtn.onclick=()=>switchMode("terrain");
 objectBtn.onclick=()=>switchMode("object");
 
 function switchMode(m){
-  mode=m;
-  terrainBtn.classList.toggle("active",m==="terrain");
-  objectBtn.classList.toggle("active",m==="object");
+  mode = m;
+
+  terrainBtn.classList.toggle("mode-active", m === "terrain");
+  objectBtn.classList.toggle("mode-active", m === "object");
+
   buildPalette();
   updateStatus();
 }
