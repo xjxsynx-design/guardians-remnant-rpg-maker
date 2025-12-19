@@ -80,9 +80,8 @@ function setActiveButton() {
 
 function updateStatus() {
   const modeLabel = state.mode === "terrain" ? "Terrain" : "Objects";
-  const toolLabel = state.tool === "erase" ? "Eraser" : "Paint";
   const selLabel = state.mode === "terrain" ? state.tile : state.objectId;
-  els.status.textContent = `Mode: ${modeLabel} | Tool: ${toolLabel} | Biome: ${state.biome} | Selected: ${selLabel}`;
+  els.status.textContent = `${modeLabel} • ${state.biome} • ${selLabel}`;
 }
 
 function buildBiomeButtons() {
