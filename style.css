@@ -97,15 +97,10 @@ button.active {
 }
 
 /* --- Map workspace with visible grid --- */
-#map {
-  display: grid;
-  grid-template-columns: repeat(10, 1fr);
-  width: 100%;
-  max-width: 500px;
-  aspect-ratio: 1 / 1; /* square map container */
-  background: #333;
-  box-sizing: border-box;
-  padding: 0;
+#map{display:grid;grid-template-columns:repeat(10,1fr);gap:1px;padding:10px}
+.tile{aspect-ratio:1;position:relative;background:#333}
+
+.object{position:absolute;inset:6px;border-radius:4px;opacity:0.9}
 }
 
 .tile {
