@@ -17,6 +17,9 @@
 html,body{ height:100%; }
 body{
   margin:0;
+  padding: calc(12px + env(safe-area-inset-top)) 0 calc(12px + env(safe-area-inset-bottom)) 0;
+  min-height: 100svh;
+  -webkit-text-size-adjust: 100%;
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   background: radial-gradient(1200px 600px at 50% -200px, #2a2a2f 0%, var(--bg0) 45%, #0b0b0c 100%);
   color:var(--text);
@@ -29,7 +32,7 @@ body{
 
 .app-header{
   width:min(920px, 96vw);
-  margin-top: 12px;
+  margin-top: 0;
 }
 
 .app-title h1{
@@ -263,7 +266,7 @@ body{
 }
 
 .bottom-space{
-  height: 140px; /* top-weighted: reserve space below for future toolbars */
+  height: calc(140px + env(safe-area-inset-bottom)); /* top-weighted: reserve space below for future toolbars */
 }
 
 @media (max-width: 420px){
