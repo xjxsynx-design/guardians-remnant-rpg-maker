@@ -1,26 +1,55 @@
+/* Guardians' Remnant – World Builder (Mobile-first) */
+
+:root{
+  --bg:#111;
+  --panel:#202020;
+  --panel2:#222;
+  --panel3:#1b1b1b;
+  --text:#eee;
+  --muted:#aaa;
+
+  --blue:#2196f3;
+  --red:#e53935;
+
+  --gridLine: rgba(255,255,255,.12);
+  --gridLine2: rgba(0,0,0,.35);
+  --tileBase:#333;
+
+  /* Touch targets */
+  --btnPadY:10px;
+  --btnPadX:16px;
+
+  /* Palette size (mobile-friendly) */
+  --swatch:64px;
+}
+
+*{ box-sizing:border-box; }
+
 body {
   margin: 0;
-  font-family: sans-serif;
-  background: #111;
-  color: #eee;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
   display: flex;
   flex-direction: column;
   align-items: center;
+  min-height: 100vh;
 }
 
 header {
   text-align: center;
   padding: 10px;
-  background: #1b1b1b;
+  background: var(--panel3);
   width: 100%;
 }
 
 #status {
   text-align: center;
-  padding: 6px;
+  padding: 8px 10px;
   background: #181818;
   font-size: 14px;
   width: 100%;
+  color: var(--muted);
 }
 
 #modeToggle, #saveLoad {
@@ -28,26 +57,34 @@ header {
   justify-content: center;
   gap: 10px;
   padding: 10px;
-  background: #202020;
+  background: var(--panel);
   width: 100%;
+  flex-wrap: wrap;
 }
 
 #modeToggle button, #saveLoad button {
-  padding: 8px 16px;
+  padding: var(--btnPadY) var(--btnPadX);
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   background: #444;
   color: white;
   cursor: pointer;
+  font-size: 15px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#modeToggle button:active,
+#saveLoad button:active {
+  transform: translateY(1px);
 }
 
 .mode-btn.mode-active {
-  background: #2196f3;
+  background: var(--blue);
   box-shadow: 0 0 6px rgba(33,150,243,.7);
 }
 
-#eraserBtn.eraser-active {
-  background: #e53935;
+#eraserBtn.mode-active {
+  background: var(--red);
   box-shadow: 0 0 8px rgba(229,57,53,.8);
   color: white;
 }
@@ -57,74 +94,106 @@ header {
   flex-direction: column;
   align-items: center;
   width: 100%;
-  max-width: 800px;
+  max-width: 820px;
   margin: 0 auto;
-  padding: 10px 0;
-  box-sizing: border-box;
+  padding: 10px 0 24px;
 }
 
 #biomes, #palette {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   padding: 10px;
-  background: #222;
+  background: var(--panel2);
   overflow-x: auto;
   width: 100%;
   justify-content: center;
-  box-sizing: border-box;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+#biomes button{
+  scroll-snap-align: start;
 }
 
 button.active {
   background: #4caf50;
-  font-weight: bold;
-  cursor: pointer;
+  font-weight: 700;
 }
 
 /* Palette tiles */
 .palette-tile {
-  width: 60px;
-  height: 60px;
-  border-radius: 6px;
+  width: var(--swatch);
+  height: var(--swatch);
+  border-radius: 10px;
   border: 2px solid transparent;
   flex-shrink: 0;
   cursor: pointer;
-  transition: transform 0.1s;
+  transition: transform 0.08s;
+  scroll-snap-align: start;
+  box-shadow: 0 2px 0 rgba(0,0,0,.35);
 }
 
 .palette-tile.selected {
-  border: 2px solid #fff;
-  transform: scale(1.1);
+  border-color: #fff;
+  transform: scale(1.06);
+  outline: 2px solid rgba(255,255,255,.12);
+  outline-offset: 2px;
 }
 
 .palette-tile.eraser {
   background: #111;
-  border: 2px dashed #e53935;
+  border: 2px dashed var(--red);
+  position: relative;
+}
+
+.palette-tile.eraser::after{
+  content:"";
+  position:absolute;
+  inset: 14px;
+  border-radius: 8px;
+  border: 2px solid rgba(229,57,53,.35);
 }
 
 /* Map workspace */
 #map {
+  width: 100%;
+  max-width: 820px;
+  background: var(--tileBase);
+  border-radius: 12px;
+  overflow: hidden;
+  touch-action: manipulation;
+
   display: grid;
   grid-template-columns: repeat(10, 1fr);
-  width: 100%;
-  max-width: 800px;
-  background: #333;
-  box-sizing: border-box;
-  padding: 0;
 }
 
 .tile {
-  background: #333;
   position: relative;
-  box-sizing: border-box;
-  border: 1px solid #555; /* visible grid lines */
-  width: 100%;
-  height: 0;
-  padding-bottom: 100%; /* maintain square tiles */
+  background: var(--tileBase);
+
+  /* THE KEY FIX: keep tiles square without JS sizing */
+  aspect-ratio: 1 / 1;
+
+  /* Grid lines (visible) */
+  outline: 1px solid var(--gridLine2);
 }
 
+/* subtle overlay grid (polished look) */
+#map::before{
+  content:"";
+  pointer-events:none;
+  position:absolute;
+  inset:0;
+}
+
+/* Objects inside tile */
 .object {
   position: absolute;
-  inset: 6px;
-  border-radius: 4px;
-  opacity: 0.9;
+  inset: 10%;
+  border-radius: 6px;
+  opacity: 0.92;
+  box-shadow: inset 0 0 0 2px rgba(0,0,0,.25);
 }
+
+/* Make the map container position relative for overlays */
+#map{ position: relative; }

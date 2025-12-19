@@ -1,33 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Guardians' Remnant – World Builder</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>Guardians' Remnant – World Builder</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<header><h1>World Builder</h1></header>
+  <header><h1>World Builder</h1></header>
 
-<div id="status"></div>
+  <div id="status" aria-live="polite"></div>
 
-<section id="modeToggle">
-  <button id="terrainBtn" class="mode-btn">Terrain</button>
-  <button id="objectBtn" class="mode-btn">Objects</button>
-  <button id="eraserBtn" class="mode-btn">Eraser</button>
-</section>
+  <section id="modeToggle" aria-label="Mode">
+    <button id="terrainBtn" class="mode-btn" type="button">Terrain</button>
+    <button id="objectBtn" class="mode-btn" type="button">Objects</button>
+    <button id="eraserBtn" class="mode-btn" type="button">Eraser</button>
+  </section>
 
-<section id="saveLoad">
-  <button id="saveBtn">Save Map</button>
-  <button id="loadBtn">Load Map</button>
-</section>
+  <section id="saveLoad" aria-label="Save and load">
+    <button id="saveBtn" type="button">Save Map</button>
+    <button id="loadBtn" type="button">Load Map</button>
+  </section>
 
-<div id="workspace">
-  <section id="biomes"></section>
-  <section id="palette"></section>
-  <section id="map"></section>
-</div>
+  <div id="workspace">
+    <section id="biomes" aria-label="Biomes"></section>
+    <section id="palette" aria-label="Palette"></section>
+    <section id="map" aria-label="Map"></section>
+  </div>
 
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
