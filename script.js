@@ -44,7 +44,6 @@ eraserBtn.onclick = () => {
   // Toggle eraser button style
   eraserBtn.classList.toggle("eraser-active", eraserActive);
 
-  // When eraser is active, disable terrain/object mode
   if (eraserActive) {
     mode = "eraser";
     terrainBtn.classList.remove("mode-active");
@@ -103,10 +102,13 @@ function buildBiomes() {
 // --- Palette ---
 function buildPalette() {
   paletteBar.innerHTML = "";
+  const mapWidth = map.clientWidth;
+  const tileSize = mapWidth / 10 - 2; // approx subtract gap
 
   if (eraserActive) {
     const d = document.createElement("div");
     d.className = "palette-tile selected eraser";
+    d.style.width = `${tileSize}px`;
     paletteBar.appendChild(d);
     return;
   }
@@ -116,6 +118,7 @@ function buildPalette() {
       const d = document.createElement("div");
       d.className = "palette-tile";
       d.style.background = TILES[t];
+      d.style.width = `${tileSize}px`;
       if (t === currentTile) d.classList.add("selected");
       d.onclick = () => { currentTile = t; buildPalette(); updateStatus(); };
       paletteBar.appendChild(d);
@@ -125,6 +128,7 @@ function buildPalette() {
       const d = document.createElement("div");
       d.className = "palette-tile";
       d.style.background = OBJECTS[o];
+      d.style.width = `${tileSize}px`;
       if (o === currentObject) d.classList.add("selected");
       d.onclick = () => { currentObject = o; buildPalette(); updateStatus(); };
       paletteBar.appendChild(d);
@@ -167,3 +171,6 @@ buildBiomes();
 buildPalette();
 buildMap();
 updateStatus();
+
+// --- Optional: Rebuild palette on window resize to adjust tile widths ---
+window.addEventListener("resize", buildPalette);
