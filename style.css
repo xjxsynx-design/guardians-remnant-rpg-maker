@@ -23,7 +23,7 @@ header {
   width: 100%;
 }
 
-#modeToggle {
+#modeToggle, #saveLoad {
   display: flex;
   justify-content: center;
   gap: 10px;
@@ -32,7 +32,7 @@ header {
   width: 100%;
 }
 
-#modeToggle button {
+#modeToggle button, #saveLoad button {
   padding: 8px 16px;
   border: none;
   border-radius: 8px;
@@ -57,7 +57,7 @@ header {
   flex-direction: column;
   align-items: center;
   width: 100%;
-  max-width: 500px; /* optional max width */
+  max-width: 500px;
   margin: 0 auto;
   padding: 10px 0;
   box-sizing: border-box;
@@ -98,10 +98,10 @@ button.active {
 
 #map {
   display: grid;
-  grid-template-columns: repeat(10, 1fr); /* dynamic columns */
+  grid-template-columns: repeat(10, 1fr);
   gap: 1px;
   width: 100%;
-  max-width: 500px; /* optional max width */
+  max-width: 500px;
   padding: 10px 0;
   background: #333;
   box-sizing: border-box;
