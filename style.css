@@ -1,107 +1,132 @@
-* {
-  box-sizing: border-box;
-  touch-action: manipulation;
-}
-
 body {
   margin: 0;
-  font-family: system-ui, sans-serif;
-  background: #1b1b1b;
+  font-family: sans-serif;
+  background: #111;
   color: #eee;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 header {
   text-align: center;
-  padding: 8px;
-  background: #111;
-  border-bottom: 2px solid #333;
+  padding: 10px;
+  background: #1b1b1b;
+  width: 100%;
 }
 
-#toolbar {
+#status {
+  text-align: center;
   padding: 6px;
-  background: #222;
+  background: #181818;
+  font-size: 14px;
+  width: 100%;
 }
 
-.tool-group {
+#modeToggle, #saveLoad {
   display: flex;
-  gap: 6px;
-  margin-bottom: 6px;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+  background: #202020;
+  width: 100%;
 }
 
-.tool {
-  flex: 1;
-  padding: 8px;
-  font-weight: bold;
-  border-radius: 6px;
-  border: 2px solid #555;
-  background: #333;
-  color: #eee;
+#modeToggle button, #saveLoad button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #444;
+  color: white;
+  cursor: pointer;
 }
 
-.tool.active {
-  background: #4caf50;
-  border-color: #a5d6a7;
+.mode-btn.mode-active {
+  background: #2196f3;
+  box-shadow: 0 0 6px rgba(33,150,243,.7);
 }
 
-.tool.danger.active {
-  background: #c62828;
-  border-color: #ef9a9a;
+#eraserBtn.eraser-active {
+  background: #e53935;
+  box-shadow: 0 0 8px rgba(229,57,53,.8);
+  color: white;
+}
+
+#workspace {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 10px 0;
+  box-sizing: border-box;
 }
 
 #biomes, #palette {
   display: flex;
-  gap: 6px;
+  gap: 8px;
+  padding: 10px;
+  background: #222;
   overflow-x: auto;
-  margin-bottom: 6px;
-}
-
-.palette-tile {
-  width: 42px;
-  height: 42px;
-  border-radius: 6px;
-  border: 2px solid #555;
-  box-shadow: inset 0 0 0 2px rgba(0,0,0,.25);
-}
-
-.palette-tile.active {
-  outline: 3px solid #ffd54f;
-}
-
-#map-container {
-  display: flex;
+  width: 100%;
   justify-content: center;
-  padding: 8px;
+  box-sizing: border-box;
 }
 
+button.active {
+  background: #4caf50;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Palette tiles */
+.palette-tile {
+  width: 60px;
+  height: 60px;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.palette-tile.selected {
+  border: 2px solid #fff;
+  transform: scale(1.1);
+}
+
+.palette-tile.eraser {
+  background: #111;
+  border: 2px dashed #e53935;
+}
+
+/* Map workspace */
 #map {
+  width: min(92vw, 460px);
+  aspect-ratio: 1 / 1;
   display: grid;
-  grid-template-columns: repeat(20, 24px);
-  grid-template-rows: repeat(20, 24px);
-  gap: 1px;
-  background: #000;
+  grid-template-columns: repeat(10, 1fr);
+  grid-auto-rows: 1fr;
+  gap: 0;
+  border: 2px solid #555;
+  background: #222;
+  margin: 14px auto 0;
+  touch-action: none; /* allow drag paint without page scroll */
 }
 
 .tile {
-  width: 24px;
-  height: 24px;
-  background: #111;
-  box-shadow:
-    inset 1px 1px 0 rgba(255,255,255,.15),
-    inset -1px -1px 0 rgba(0,0,0,.4);
+  background: #333;
+  box-sizing: border-box;
+  border: 1px solid #555; /* visible grid lines */
+  aspect-ratio: 1 / 1;
+  position: relative;
+  user-select: none;
 }
 
-.tile.object {
-  outline: 2px solid rgba(255,255,255,.4);
-}
-
-.tile:hover {
-  filter: brightness(1.15);
-}
-
-footer {
-  display: flex;
-  gap: 8px;
-  padding: 8px;
-  background: #111;
-  border-top: 2px solid #333;
+.object {
+  position: absolute;
+  inset: 6px;
+  border-radius: 4px;
+  opacity: 0.9;
 }
