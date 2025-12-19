@@ -138,13 +138,13 @@ function buildBiomes() {
 // --- Palette ---
 function buildPalette() {
   paletteBar.innerHTML = "";
-  const mapWidth = map.clientWidth;
-  const tileSize = mapWidth / 10 - 2;
+  const tileSize = 60; // palette tile size
 
   if (eraserActive) {
     const d = document.createElement("div");
     d.className = "palette-tile selected eraser";
     d.style.width = `${tileSize}px`;
+    d.style.height = `${tileSize}px`;
     paletteBar.appendChild(d);
     return;
   }
@@ -155,6 +155,7 @@ function buildPalette() {
       d.className = "palette-tile";
       d.style.background = TILES[t];
       d.style.width = `${tileSize}px`;
+      d.style.height = `${tileSize}px`;
       if (t === currentTile) d.classList.add("selected");
       d.onclick = () => { currentTile = t; buildPalette(); updateStatus(); };
       paletteBar.appendChild(d);
@@ -165,6 +166,7 @@ function buildPalette() {
       d.className = "palette-tile";
       d.style.background = OBJECTS[o];
       d.style.width = `${tileSize}px`;
+      d.style.height = `${tileSize}px`;
       if (o === currentObject) d.classList.add("selected");
       d.onclick = () => { currentObject = o; buildPalette(); updateStatus(); };
       paletteBar.appendChild(d);
@@ -175,9 +177,14 @@ function buildPalette() {
 // --- Map ---
 function buildMap() {
   map.innerHTML = "";
+  const mapWidth = map.clientWidth;
+  const tileSize = mapWidth / 10;
+
   for (let i = 0; i < 100; i++) {
     const d = document.createElement("div");
     d.className = "tile";
+    d.style.width = `${tileSize}px`;
+    d.style.height = `${tileSize}px`;
     d.onclick = () => {
       if (eraserActive) {
         d.style.background = "#333";
@@ -207,4 +214,4 @@ buildBiomes();
 buildPalette();
 buildMap();
 updateStatus();
-window.addEventListener("resize", buildPalette);
+window.addEventListener("resize", buildMap);
