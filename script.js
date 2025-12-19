@@ -1,53 +1,68 @@
-
 let eraserActive = false;
 
 const eraserBtn = document.getElementById("eraserBtn");
+const terrainBtn = document.getElementById("terrainBtn");
+const objectBtn = document.getElementById("objectBtn");
+const biomeBar = document.getElementById("biomes");
+const paletteBar = document.getElementById("palette");
+const map = document.getElementById("map");
+const status = document.getElementById("status");
+
+const BIOMES = {
+  Overworld: ["Grass", "Dirt", "Stone"],
+  Ruins: ["Stone", "Moss", "Dirt"],
+  Frozen: ["Snow", "Ice", "Stone"]
+};
+
+const TILES = {
+  Grass: "#4caf50",
+  Dirt: "#8b5a2b",
+  Stone: "#777",
+  Moss: "#5f7f3f",
+  Snow: "#eef",
+  Ice: "#aee"
+};
+
+const OBJECTS = {
+  Tree: "#2e7d32",
+  Pillar: "#999",
+  Ruin: "#795548"
+};
+
+let mode = "terrain";
+let currentBiome = "Overworld";
+let currentTile = "Grass";
+let currentObject = "Tree";
+
+// --- Mode buttons ---
+terrainBtn.onclick = () => switchMode("terrain");
+objectBtn.onclick = () => switchMode("object");
 
 eraserBtn.onclick = () => {
   eraserActive = !eraserActive;
 
-  // Visual indicator
+  // Toggle eraser button style
   eraserBtn.classList.toggle("eraser-active", eraserActive);
-};
-const BIOMES={
-  Overworld:["Grass","Dirt","Stone"],
-  Ruins:["Stone","Moss","Dirt"],
-  Frozen:["Snow","Ice","Stone"]
-};
 
-const TILES={
-  Grass:"#4caf50",
-  Dirt:"#8b5a2b",
-  Stone:"#777",
-  Moss:"#5f7f3f",
-  Snow:"#eef",
-  Ice:"#aee"
-};
+  // When eraser is active, disable terrain/object mode
+  if (eraserActive) {
+    mode = "eraser";
+    terrainBtn.classList.remove("mode-active");
+    objectBtn.classList.remove("mode-active");
+  } else {
+    mode = "terrain";
+    terrainBtn.classList.add("mode-active");
+  }
 
-const OBJECTS={
-  Tree:"#2e7d32",
-  Pillar:"#999",
-  Ruin:"#795548"
+  buildPalette();
+  updateStatus();
 };
 
-let mode="terrain";
-let currentBiome="Overworld";
-let currentTile="Grass";
-let currentObject="Tree";
-
-const biomeBar=document.getElementById("biomes");
-const paletteBar=document.getElementById("palette");
-const map=document.getElementById("map");
-const status=document.getElementById("status");
-
-const terrainBtn=document.getElementById("terrainBtn");
-const objectBtn=document.getElementById("objectBtn");
-
-terrainBtn.onclick=()=>switchMode("terrain");
-objectBtn.onclick=()=>switchMode("object");
-
-function switchMode(m){
+// --- Switch Mode ---
+function switchMode(m) {
   mode = m;
+  eraserActive = false;
+  eraserBtn.classList.remove("eraser-active");
 
   terrainBtn.classList.toggle("mode-active", m === "terrain");
   objectBtn.classList.toggle("mode-active", m === "object");
@@ -56,21 +71,27 @@ function switchMode(m){
   updateStatus();
 }
 
-function updateStatus(){
-  status.textContent = mode==="terrain"
-    ? `Mode: Terrain | Biome: ${currentBiome} | Tile: ${currentTile}`
-    : `Mode: Objects | Object: ${currentObject}`;
+// --- Status Bar ---
+function updateStatus() {
+  if (eraserActive) {
+    status.textContent = "Mode: Eraser";
+  } else if (mode === "terrain") {
+    status.textContent = `Mode: Terrain | Biome: ${currentBiome} | Tile: ${currentTile}`;
+  } else {
+    status.textContent = `Mode: Objects | Object: ${currentObject}`;
+  }
 }
 
-function buildBiomes(){
-  biomeBar.innerHTML="";
-  Object.keys(BIOMES).forEach(b=>{
-    const btn=document.createElement("button");
-    btn.textContent=b;
-    if(b===currentBiome)btn.classList.add("active");
-    btn.onclick=()=>{
-      currentBiome=b;
-      currentTile=BIOMES[b][0];
+// --- Biomes ---
+function buildBiomes() {
+  biomeBar.innerHTML = "";
+  Object.keys(BIOMES).forEach(b => {
+    const btn = document.createElement("button");
+    btn.textContent = b;
+    if (b === currentBiome) btn.classList.add("active");
+    btn.onclick = () => {
+      currentBiome = b;
+      currentTile = BIOMES[b][0];
       buildBiomes();
       buildPalette();
       updateStatus();
@@ -79,51 +100,69 @@ function buildBiomes(){
   });
 }
 
-function buildPalette(){
-  paletteBar.innerHTML="";
-  if(mode==="terrain"){
-    BIOMES[currentBiome].forEach(t=>{
-      const d=document.createElement("div");
-      d.className="palette-tile";
-      d.style.background=TILES[t];
-      if(t===currentTile)d.classList.add("selected");
-      d.onclick=()=>{currentTile=t;buildPalette();updateStatus();};
+// --- Palette ---
+function buildPalette() {
+  paletteBar.innerHTML = "";
+
+  if (eraserActive) {
+    const d = document.createElement("div");
+    d.className = "palette-tile selected eraser";
+    paletteBar.appendChild(d);
+    return;
+  }
+
+  if (mode === "terrain") {
+    BIOMES[currentBiome].forEach(t => {
+      const d = document.createElement("div");
+      d.className = "palette-tile";
+      d.style.background = TILES[t];
+      if (t === currentTile) d.classList.add("selected");
+      d.onclick = () => { currentTile = t; buildPalette(); updateStatus(); };
       paletteBar.appendChild(d);
     });
   } else {
-    Object.keys(OBJECTS).forEach(o=>{
-      const d=document.createElement("div");
-      d.className="palette-tile";
-      d.style.background=OBJECTS[o];
-      if(o===currentObject)d.classList.add("selected");
-      d.onclick=()=>{currentObject=o;buildPalette();updateStatus();};
+    Object.keys(OBJECTS).forEach(o => {
+      const d = document.createElement("div");
+      d.className = "palette-tile";
+      d.style.background = OBJECTS[o];
+      if (o === currentObject) d.classList.add("selected");
+      d.onclick = () => { currentObject = o; buildPalette(); updateStatus(); };
       paletteBar.appendChild(d);
     });
   }
 }
 
-function buildMap(){
-  map.innerHTML="";
-  for(let i=0;i<100;i++){
-    const d=document.createElement("div");
-    d.className="tile";
-    d.onclick=()=>{
-      if(mode==="terrain"){
-        d.style.background=TILES[currentTile];
+// --- Map ---
+function buildMap() {
+  map.innerHTML = "";
+  for (let i = 0; i < 100; i++) {
+    const d = document.createElement("div");
+    d.className = "tile";
+    d.onclick = () => {
+      if (eraserActive) {
+        d.style.background = "#333";
+        const obj = d.querySelector(".object");
+        if (obj) obj.remove();
+        return;
+      }
+
+      if (mode === "terrain") {
+        d.style.background = TILES[currentTile];
       } else {
-        let obj=d.querySelector(".object");
-        if(!obj){
-          obj=document.createElement("div");
-          obj.className="object";
+        let obj = d.querySelector(".object");
+        if (!obj) {
+          obj = document.createElement("div");
+          obj.className = "object";
           d.appendChild(obj);
         }
-        obj.style.background=OBJECTS[currentObject];
+        obj.style.background = OBJECTS[currentObject];
       }
     };
     map.appendChild(d);
   }
 }
 
+// --- Initialize ---
 buildBiomes();
 buildPalette();
 buildMap();
