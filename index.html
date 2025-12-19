@@ -3,61 +3,54 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Guardians’ Remnant — World Editor</title>
+  <meta name="theme-color" content="#0b0c0f" />
+  <title>Guardians' Remnant — World Editor</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="app">
-    <header class="hud">
-      <div class="title-row">
-        <h1>Guardians’ Remnant</h1>
-        <div class="badge">World Editor</div>
-      </div>
-      <div id="status" class="status">Terrain • Overworld • Grass</div>
-    </header>
+  <header class="top">
+    <h1>Guardians' Remnant<span class="sub">World Editor</span></h1>
+    <div id="status" class="status">Loading…</div>
+  </header>
 
-    <section class="panel panel-top">
+  <main class="app" id="app">
+    <section class="panel controls">
       <div class="row">
-        <div class="seg" role="group" aria-label="Mode">
-          <button id="modeTerrain" class="btn pixel active" type="button">Terrain</button>
-          <button id="modeObjects" class="btn pixel" type="button">Objects</button>
-          <button id="modeEraser" class="btn pixel" type="button">Eraser</button>
-        </div>
-        <div class="tools">
-          <button id="btnSave" class="btn pixel" type="button">Save</button>
-          <button id="btnLoad" class="btn pixel" type="button">Load</button>
-          <button id="btnExport" class="btn pixel" type="button">Export</button>
-          <button id="btnImport" class="btn pixel" type="button">Import</button>
-          <button id="btnClear" class="btn pixel danger" type="button">Clear</button>
-        </div>
+        <button class="btn mode" data-mode="terrain" id="btnTerrain">Terrain</button>
+        <button class="btn mode" data-mode="objects" id="btnObjects">Objects</button>
+        <button class="btn mode" data-mode="eraser"  id="btnEraser">Eraser</button>
+      </div>
+      <div class="row row-tight">
+        <button class="btn" id="btnSave">Save</button>
+        <button class="btn" id="btnLoad">Load</button>
+        <button class="btn" id="btnExport">Export</button>
+        <button class="btn" id="btnImport">Import</button>
+        <button class="btn danger" id="btnClear">Clear</button>
       </div>
     </section>
 
-    <section class="panel panel-mid">
+    <section class="panel palette-panel">
       <div class="row">
-        <div class="seg" role="group" aria-label="Biome">
-          <button class="btn pixel biome active" data-biome="Overworld" type="button">Overworld</button>
-          <button class="btn pixel biome" data-biome="Ruins" type="button">Ruins</button>
-          <button class="btn pixel biome" data-biome="Frozen" type="button">Frozen</button>
-        </div>
+        <button class="btn biome" data-biome="overworld" id="btnOverworld">Overworld</button>
+        <button class="btn biome" data-biome="ruins" id="btnRuins">Ruins</button>
+        <button class="btn biome" data-biome="frozen" id="btnFrozen">Frozen</button>
       </div>
 
-      <div class="row palette-row">
+      <div class="palette-wrap">
         <div class="palette-title" id="paletteTitle">Tiles</div>
-        <div id="palette" class="palette" aria-label="Palette"></div>
+        <div id="palette" class="palette" aria-label="Tile Palette"></div>
       </div>
     </section>
 
-    <section class="panel panel-map">
-      <div class="map-wrap">
-        <canvas id="map" width="320" height="320" aria-label="Map editor"></canvas>
+    <section class="panel map-panel">
+      <div class="map-frame">
+        <canvas id="mapCanvas" width="384" height="288" aria-label="Map canvas"></canvas>
       </div>
-      <div class="hint">Tip: drag to paint • two layers (terrain + objects) • eraser removes the active layer</div>
+      <div class="tip" id="tip">Tip: drag to paint • two layers (terrain + objects) • eraser removes the active layer</div>
     </section>
+  </main>
 
-    <footer class="footer-space"></footer>
-  </div>
-
+  <img id="tilesetImg" src="tileset.png" alt="" style="display:none" />
   <script src="script.js"></script>
 </body>
 </html>
