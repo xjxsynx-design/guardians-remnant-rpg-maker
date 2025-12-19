@@ -172,66 +172,176 @@ function isObject(k){
 }
 
 function drawObjectGlyph(t, key){
-  // very small pixel icons (so it reads like a sprite on top of terrain)
-  // Use only a few pixels so it feels “tile-placed”, not big modern icon.
+  // More "16-bit" looking micro-sprites (still 16x16, but with outline + shading).
+  // Goal: read like ALTTP objects, not emoji/8-bit blobs.
   function p(x,y,c){ t.fillStyle=c; t.fillRect(x,y,1,1); }
-  const mid = 8;
+  function rect(x0,y0,x1,y1,c){
+    for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++) p(x,y,c);
+  }
+  function outline(x0,y0,x1,y1,oc){
+    for(let x=x0;x<=x1;x++){ p(x,y0,oc); p(x,y1,oc); }
+    for(let y=y0;y<=y1;y++){ p(x0,y,oc); p(x1,y,oc); }
+  }
+
+  const OUT = "#0d0d0f"; // ink outline
 
   if(key==="Chest"){
-    const wood="#5b361e", wood2="#7b4d2a", gold="#c8a23a", ink="#111";
-    // base box
-    for(let y=9;y<=13;y++) for(let x=4;x<=11;x++) p(x,y, (y===9?wood2:wood));
-    // lid
-    for(let y=6;y<=8;y++) for(let x=4;x<=11;x++) p(x,y, wood2);
-    // lock
-    p(7,10,gold); p(8,10,gold); p(7,11,gold); p(8,11,gold);
-    p(7,12,ink); p(8,12,ink);
+    // Chest with lid, banding, lock, and highlight (ALTTP-ish).
+    const wD="#4b2a12", wM="#6a3c1c", wL="#8a5a2b";
+    const mM="#c8a23a", mD="#8b6f20", mH="#dfcf8a";
+    // Lid
+    rect(4,5,11,8,wM);
+    rect(5,6,10,6,wL);            // highlight strip
+    rect(4,8,11,8,wD);            // lid shadow edge
+    // Body
+    rect(5,9,10,13,wM);
+    rect(6,10,9,10,wL);           // front highlight
+    rect(5,13,10,13,wD);          // base shadow
+    // Metal bands
+    rect(5,11,10,11,mM);
+    rect(5,12,10,12,mD);
+    // Lock plate
+    rect(7,10,8,12,mM);
+    rect(7,11,8,11,mH);
+    p(7,12,OUT); p(8,12,OUT);
+    // Outline (slightly irregular to feel sprite-like)
+    outline(4,5,11,13,OUT);
+    p(4,9,OUT); p(11,9,OUT);
+    // Rounded lid corners
+    p(4,5,OUT); p(11,5,OUT);
+    p(4,6,OUT); p(11,6,OUT);
   }
 
-  if(key==="Tree" || key==="Pine"){
-    const leaf = key==="Pine" ? "#1f5f2a" : "#2f7f3b";
-    const leaf2= key==="Pine" ? "#2a6f35" : "#3a9a49";
-    const bark = "#5b361e";
-    // trunk
-    for(let y=11;y<=13;y++) for(let x=7;x<=8;x++) p(x,y,bark);
-    // crown
-    const points = key==="Pine"
-      ? [[7,4],[6,5],[8,5],[5,6],[9,6],[6,7],[8,7],[7,8]]
-      : [[7,5],[6,6],[8,6],[5,7],[9,7],[6,8],[8,8],[7,9]];
-    for(const [x,y] of points) p(x,y,leaf2);
-    // fill
-    for(let y=6;y<=10;y++){
-      for(let x=5;x<=9;x++){
-        if(rand(hashKey(key)+x*41+y*97) > 0.35) p(x,y,leaf);
+  if(key==="Tree"){
+    // Broadleaf tree: round canopy with 3 shades + trunk.
+    const gD="#1f5a2b", gM="#2f7f3b", gL="#45a854";
+    const barkD="#4b2a12", barkM="#6a3c1c";
+    // Canopy blob (hand-tuned)
+    const canopy = [
+      [6,3,9,3],[5,4,10,4],[4,5,11,5],
+      [4,6,11,6],[4,7,11,7],[5,8,10,8],[6,9,9,9]
+    ];
+    for(const [x0,y0,x1,y1] of canopy) rect(x0,y0,x1,y1,gM);
+    // Shadows (lower-right)
+    rect(9,6,11,7,gD); rect(8,8,10,9,gD);
+    // Highlights (upper-left)
+    rect(4,5,6,6,gL); rect(5,4,7,4,gL);
+    // Outline canopy
+    for(let y=3;y<=9;y++){
+      for(let x=3;x<=12;x++){
+        // outline if pixel is canopy and neighbor is empty
+        const isFill = (x>=4 && x<=11 && (
+          (y==3 && x>=6 && x<=9) ||
+          (y==4 && x>=5 && x<=10) ||
+          (y==5 && x>=4 && x<=11) ||
+          (y==6 && x>=4 && x<=11) ||
+          (y==7 && x>=4 && x<=11) ||
+          (y==8 && x>=5 && x<=10) ||
+          (y==9 && x>=6 && x<=9)
+        ));
+        if(!isFill) continue;
+        const n = (dx,dy)=>{
+          const xx=x+dx, yy=y+dy;
+          return (xx>=4 && xx<=11 && (
+            (yy==3 && xx>=6 && xx<=9) ||
+            (yy==4 && xx>=5 && xx<=10) ||
+            (yy==5 && xx>=4 && xx<=11) ||
+            (yy==6 && xx>=4 && xx<=11) ||
+            (yy==7 && xx>=4 && xx<=11) ||
+            (yy==8 && xx>=5 && xx<=10) ||
+            (yy==9 && xx>=6 && xx<=9)
+          ));
+        };
+        if(!n(1,0)||!n(-1,0)||!n(0,1)||!n(0,-1)) p(x,y,OUT);
       }
     }
+    // Trunk
+    rect(7,10,8,13,barkM);
+    rect(7,12,8,13,barkD);
+    p(7,11,"#8a5a2b"); // tiny highlight
+    // Outline trunk base
+    p(6,13,OUT); p(9,13,OUT);
   }
 
-  if(key==="Rock" || key==="Rubble" || key==="Pillar"){
-    const s1="#6b7078", s2="#7b8087", s3="#4c5056";
-    if(key==="Pillar"){
-      for(let y=5;y<=13;y++) for(let x=7;x<=9;x++) p(x,y,s1);
-      for(let y=5;y<=13;y++) p(7,y,s2);
-      for(let y=5;y<=13;y++) p(9,y,s3);
-      p(6,5,s2); p(10,5,s3); p(6,13,s2); p(10,13,s3);
-    } else {
-      const pts=[[6,9],[7,8],[8,8],[9,9],[9,10],[8,11],[7,11],[6,10]];
-      for(const [x,y] of pts) p(x,y,s1);
-      for(let y=9;y<=11;y++) for(let x=6;x<=9;x++) if(rand(x*17+y*31)>0.35) p(x,y,rand(x*9+y*13)>0.6?s2:s3);
-    }
-    if(key==="Rubble"){
-      p(4,12,s3); p(5,12,s1); p(4,13,s1);
-      p(11,6,s3); p(12,6,s1); p(12,7,s2);
+  if(key==="Pine"){
+    // Conifer: stacked triangles, shaded.
+    const gD="#1b4e25", gM="#2a6f35", gL="#3a9246";
+    const barkD="#4b2a12", barkM="#6a3c1c";
+    // Layers
+    rect(7,3,8,3,gL);
+    rect(6,4,9,4,gM); rect(7,4,7,4,gL);
+    rect(5,5,10,5,gM); rect(6,5,7,5,gL);
+    rect(4,6,11,6,gM); rect(5,6,7,6,gL);
+    rect(5,7,10,7,gM);
+    rect(6,8,9,8,gD);
+    // Outline edges
+    for(const [x,y] of [[7,3],[6,4],[9,4],[5,5],[10,5],[4,6],[11,6],[5,7],[10,7],[6,8],[9,8]]) p(x,y,OUT);
+    // Trunk
+    rect(7,10,8,13,barkM);
+    rect(7,12,8,13,barkD);
+    p(7,11,"#8a5a2b");
+  }
+
+  if(key==="Rock"){
+    // Irregular rock with highlight and crack.
+    const rD="#4f545a", rM="#6a7078", rL="#8b929c";
+    // Shape
+    rect(5,9,10,12,rM);
+    rect(6,8,10,9,rM);
+    rect(6,7,9,8,rM);
+    rect(6,12,9,12,rD);
+    rect(9,10,10,12,rD); // shadow side
+    rect(6,7,7,8,rL); rect(6,8,7,9,rL); // highlight
+    // Crack
+    p(8,9,OUT); p(7,10,OUT); p(8,11,OUT);
+    // Outline
+    for(const [x,y] of [[6,7],[9,7],[5,9],[10,8],[10,9],[11,10],[10,12],[5,12],[4,10],[5,8]]) p(x,y,OUT);
+  }
+
+  if(key==="Pillar"){
+    // Stone pillar/obelisk-like marker.
+    const sD="#525960", sM="#6e757d", sL="#8c939c";
+    rect(7,5,8,13,sM);
+    rect(7,5,7,13,sL);         // left highlight
+    rect(8,7,8,13,sD);         // right shadow
+    rect(6,5,9,6,sM);          // cap
+    rect(6,5,8,5,sL);
+    outline(6,5,9,13,OUT);
+    // tiny rune
+    p(7,9,"#2b2f33"); p(8,10,"#2b2f33");
+  }
+
+  if(key==="Rubble"){
+    // Small cluster of stones.
+    const sD="#4f545a", sM="#6a7078", sL="#8b929c";
+    const stones = [
+      {x:5,y:11,w:3,h:2},{x:9,y:12,w:2,h:2},{x:7,y:9,w:2,h:2},{x:10,y:10,w:2,h:2}
+    ];
+    for(const st of stones){
+      rect(st.x,st.y,st.x+st.w-1,st.y+st.h-1,sM);
+      rect(st.x,st.y,st.x+1,st.y,sL);
+      rect(st.x+st.w-1,st.y,st.x+st.w-1,st.y+st.h-1,sD);
+      outline(st.x,st.y,st.x+st.w-1,st.y+st.h-1,OUT);
     }
   }
 
   if(key==="Crystal"){
-    const c1="#86c6d9", c2="#9ad8e8", gold="#c8a23a", ink="#111";
-    const pts=[[8,4],[7,5],[9,5],[6,6],[10,6],[7,7],[9,7],[8,8],[8,9]];
-    for(const [x,y] of pts) p(x,y,c1);
-    p(8,5,c2); p(8,6,c2); p(8,7,c2);
-    p(7,6,c2); p(9,6,c2);
-    p(8,10,gold); p(8,11,ink);
+    // Faceted crystal with highlight.
+    const cD="#4aa6c2", cM="#72c4db", cL="#a8e6f3";
+    const base="#c8a23a";
+    // Main shard
+    rect(7,4,8,10,cM);
+    rect(6,6,6,9,cM); rect(9,6,9,9,cM);
+    rect(7,5,7,9,cL); // highlight ridge
+    rect(8,7,8,10,cD); // shadow ridge
+    // Facet tips
+    p(7,3,cL); p(8,3,cM);
+    p(6,5,cM); p(9,5,cD);
+    // Outline
+    for(const [x,y] of [[7,3],[8,3],[6,5],[9,5],[6,9],[9,9],[7,10],[8,10],[7,11],[8,11]]) p(x,y,OUT);
+    // Base/stand
+    rect(7,12,8,12,base);
+    p(7,13,OUT); p(8,13,OUT);
   }
 }
 
