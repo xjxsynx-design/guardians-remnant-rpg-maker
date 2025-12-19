@@ -77,18 +77,23 @@ header {
 button.active {
   background: #4caf50;
   font-weight: bold;
+  cursor: pointer;
 }
 
+/* --- Palette tiles --- */
 .palette-tile {
-  aspect-ratio: 1;
+  width: 60px;              /* larger clickable area */
+  height: 60px;             /* square */
   border-radius: 6px;
   border: 2px solid transparent;
   flex-shrink: 0;
+  cursor: pointer;
+  transition: transform 0.1s;
 }
 
 .palette-tile.selected {
   border: 2px solid #fff;
-  transform: scale(1.08);
+  transform: scale(1.1);
 }
 
 .palette-tile.eraser {
@@ -102,7 +107,7 @@ button.active {
   grid-template-columns: repeat(10, 1fr);
   width: 100%;
   max-width: 500px;
-  height: 500px; /* FIX: explicit height ensures tiles show */
+  height: 500px;           /* visible workspace size */
   background: #333;
   box-sizing: border-box;
   padding: 0;
@@ -112,7 +117,7 @@ button.active {
   background: #333;
   position: relative;
   box-sizing: border-box;
-  border: 1px solid #555; /* visible grid lines */
+  border: 1px solid #555;  /* visible grid lines */
   width: 100%;
   height: 100%;
 }
