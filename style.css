@@ -130,3 +130,27 @@ button.active {
   border-radius: 4px;
   opacity: 0.9;
 }
+
+
+#app{
+  width: min(92vw, 560px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 12px;
+}
+
+#modeToggle, #biomes, #palette, #saveLoad, #status{
+  width: 100%;
+  border-radius: 14px;
+}
+
+#modeToggle button, #biomes button{
+  border: 2px solid transparent;
+  box-sizing: border-box;
+}
+
+#modeToggle button.active, #biomes button.active{
+  border-color: #7CFF7C;
+}
+
