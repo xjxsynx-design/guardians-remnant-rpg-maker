@@ -5,7 +5,9 @@ const eraserBtn = document.getElementById("eraserBtn");
 
 eraserBtn.onclick = () => {
   eraserActive = !eraserActive;
-  eraserBtn.classList.toggle("mode-active", eraserActive);
+
+  // Visual indicator
+  eraserBtn.classList.toggle("eraser-active", eraserActive);
 };
 const BIOMES={
   Overworld:["Grass","Dirt","Stone"],
