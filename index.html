@@ -7,39 +7,56 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header class="app-header">
-    <div class="app-title">
-      <h1>Guardians’ Remnant — World Editor</h1>
-      <div id="status" class="status">Loading…</div>
-    </div>
-
-    <div class="topbar">
-      <div class="segmented" role="group" aria-label="Mode">
-        <button id="terrainBtn" class="seg-btn" type="button">Terrain</button>
-        <button id="objectBtn" class="seg-btn" type="button">Objects</button>
-        <button id="eraserBtn" class="seg-btn" type="button">Eraser</button>
+  <div id="app">
+    <header class="hud">
+      <div class="title-row">
+        <h1>Guardians’ Remnant</h1>
+        <div class="badge">World Editor</div>
       </div>
+      <div id="status" class="status">Terrain • Overworld • Grass</div>
+    </header>
 
-      <div class="actions" role="group" aria-label="Actions">
-        <button id="saveBtn" class="action-btn" type="button" title="Save Map">Save</button>
-        <button id="loadBtn" class="action-btn" type="button" title="Load Map">Load</button>
-        <button id="clearBtn" class="action-btn danger" type="button" title="Clear Map">Clear</button>
+    <section class="panel panel-top">
+      <div class="row">
+        <div class="seg" role="group" aria-label="Mode">
+          <button id="modeTerrain" class="btn pixel active" type="button">Terrain</button>
+          <button id="modeObjects" class="btn pixel" type="button">Objects</button>
+          <button id="modeEraser" class="btn pixel" type="button">Eraser</button>
+        </div>
+        <div class="tools">
+          <button id="btnSave" class="btn pixel" type="button">Save</button>
+          <button id="btnLoad" class="btn pixel" type="button">Load</button>
+          <button id="btnExport" class="btn pixel" type="button">Export</button>
+          <button id="btnImport" class="btn pixel" type="button">Import</button>
+          <button id="btnClear" class="btn pixel danger" type="button">Clear</button>
+        </div>
       </div>
-    </div>
-
-    <div class="panel toolpanel">
-      <div id="biomes" class="row"></div>
-      <div id="palette" class="palette" aria-label="Palette"></div>
-    </div>
-  </header>
-
-  <main class="app-main">
-    <section class="map-wrap">
-      <div id="map" class="map" aria-label="Map Grid"></div>
     </section>
-    <!-- extra breathing room (top-weighted layout / future bottom toolbars) -->
-    <div class="bottom-space" aria-hidden="true"></div>
-  </main>
+
+    <section class="panel panel-mid">
+      <div class="row">
+        <div class="seg" role="group" aria-label="Biome">
+          <button class="btn pixel biome active" data-biome="Overworld" type="button">Overworld</button>
+          <button class="btn pixel biome" data-biome="Ruins" type="button">Ruins</button>
+          <button class="btn pixel biome" data-biome="Frozen" type="button">Frozen</button>
+        </div>
+      </div>
+
+      <div class="row palette-row">
+        <div class="palette-title" id="paletteTitle">Tiles</div>
+        <div id="palette" class="palette" aria-label="Palette"></div>
+      </div>
+    </section>
+
+    <section class="panel panel-map">
+      <div class="map-wrap">
+        <canvas id="map" width="320" height="320" aria-label="Map editor"></canvas>
+      </div>
+      <div class="hint">Tip: drag to paint • two layers (terrain + objects) • eraser removes the active layer</div>
+    </section>
+
+    <footer class="footer-space"></footer>
+  </div>
 
   <script src="script.js"></script>
 </body>
