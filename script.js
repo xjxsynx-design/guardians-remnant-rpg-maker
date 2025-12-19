@@ -7,6 +7,8 @@ const biomeBar = document.getElementById("biomes");
 const paletteBar = document.getElementById("palette");
 const map = document.getElementById("map");
 const status = document.getElementById("status");
+const saveBtn = document.getElementById("saveBtn");
+const loadBtn = document.getElementById("loadBtn");
 
 const BIOMES = {
   Overworld: ["Grass", "Dirt", "Stone"],
@@ -40,8 +42,6 @@ objectBtn.onclick = () => switchMode("object");
 
 eraserBtn.onclick = () => {
   eraserActive = !eraserActive;
-
-  // Toggle eraser button style
   eraserBtn.classList.toggle("eraser-active", eraserActive);
 
   if (eraserActive) {
@@ -55,6 +55,42 @@ eraserBtn.onclick = () => {
 
   buildPalette();
   updateStatus();
+};
+
+// --- Save/Load ---
+saveBtn.onclick = () => {
+  const mapData = [];
+  map.querySelectorAll(".tile").forEach(tile => {
+    const obj = tile.querySelector(".object");
+    mapData.push({
+      background: tile.style.background || null,
+      object: obj ? obj.style.background : null
+    });
+  });
+  localStorage.setItem("savedMap", JSON.stringify(mapData));
+  alert("Map saved!");
+};
+
+loadBtn.onclick = () => {
+  const mapData = JSON.parse(localStorage.getItem("savedMap"));
+  if (!mapData) return alert("No saved map found!");
+  const tiles = map.querySelectorAll(".tile");
+  mapData.forEach((data, index) => {
+    const tile = tiles[index];
+    tile.style.background = data.background || "#333";
+    let obj = tile.querySelector(".object");
+    if (data.object) {
+      if (!obj) {
+        obj = document.createElement("div");
+        obj.className = "object";
+        tile.appendChild(obj);
+      }
+      obj.style.background = data.object;
+    } else if (obj) {
+      obj.remove();
+    }
+  });
+  alert("Map loaded!");
 };
 
 // --- Switch Mode ---
@@ -103,7 +139,7 @@ function buildBiomes() {
 function buildPalette() {
   paletteBar.innerHTML = "";
   const mapWidth = map.clientWidth;
-  const tileSize = mapWidth / 10 - 2; // approx subtract gap
+  const tileSize = mapWidth / 10 - 2;
 
   if (eraserActive) {
     const d = document.createElement("div");
@@ -171,6 +207,4 @@ buildBiomes();
 buildPalette();
 buildMap();
 updateStatus();
-
-// --- Optional: Rebuild palette on window resize to adjust tile widths ---
 window.addEventListener("resize", buildPalette);
