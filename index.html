@@ -1,35 +1,46 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Guardians' Remnant – Guardians' Remnant — World Editor</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Guardians’ Remnant — World Editor</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<header><h1>Guardians' Remnant — World Editor</h1></header>
+  <header class="app-header">
+    <div class="app-title">
+      <h1>Guardians’ Remnant — World Editor</h1>
+      <div id="status" class="status">Loading…</div>
+    </div>
 
-<main id="app">
-<div id="status"></div>
+    <div class="topbar">
+      <div class="segmented" role="group" aria-label="Mode">
+        <button id="terrainBtn" class="seg-btn" type="button">Terrain</button>
+        <button id="objectBtn" class="seg-btn" type="button">Objects</button>
+        <button id="eraserBtn" class="seg-btn" type="button">Eraser</button>
+      </div>
 
-<section id="modeToggle">
-  <button id="terrainBtn" class="mode-btn">Terrain</button>
-  <button id="objectBtn" class="mode-btn">Objects</button>
-  <button id="eraserBtn" class="mode-btn">Eraser</button>
-</section>
+      <div class="actions" role="group" aria-label="Actions">
+        <button id="saveBtn" class="action-btn" type="button" title="Save Map">Save</button>
+        <button id="loadBtn" class="action-btn" type="button" title="Load Map">Load</button>
+        <button id="clearBtn" class="action-btn danger" type="button" title="Clear Map">Clear</button>
+      </div>
+    </div>
 
-<section id="saveLoad">
-  <button id="saveBtn">Save Map</button>
-  <button id="loadBtn">Load Map</button>
-</section>
+    <div class="panel toolpanel">
+      <div id="biomes" class="row"></div>
+      <div id="palette" class="palette" aria-label="Palette"></div>
+    </div>
+  </header>
 
-<div id="workspace">
-  <section id="biomes"></section>
-  <section id="palette"></section>
-  <section id="map"></section>
-</div>
+  <main class="app-main">
+    <section class="map-wrap">
+      <div id="map" class="map" aria-label="Map Grid"></div>
+    </section>
+    <!-- extra breathing room (top-weighted layout / future bottom toolbars) -->
+    <div class="bottom-space" aria-hidden="true"></div>
+  </main>
 
-<script src="script.js"></script>
-</main>
+  <script src="script.js"></script>
 </body>
 </html>
