@@ -1,3 +1,12 @@
+
+let eraserActive = false;
+
+const eraserBtn = document.getElementById("eraserBtn");
+
+eraserBtn.onclick = () => {
+  eraserActive = !eraserActive;
+  eraserBtn.classList.toggle("mode-active", eraserActive);
+};
 const BIOMES={
   Overworld:["Grass","Dirt","Stone"],
   Ruins:["Stone","Moss","Dirt"],
