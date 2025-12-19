@@ -6,6 +6,15 @@ header{text-align:center;padding:10px;background:#1b1b1b}
 #modeToggle button{padding:8px 16px;border:none;border-radius:8px;background:#444;color:white}
 #modeToggle button.active{background:#2196f3}
 
+.mode-btn {
+  background: #444;
+}
+
+.mode-btn.mode-active {
+  background: #2196f3;
+  box-shadow: 0 0 6px rgba(33,150,243,.7);
+}
+
 #biomes,#palette{display:flex;gap:8px;padding:10px;background:#222;overflow-x:auto}
 
 button{padding:8px 12px;border:none;background:#444;color:white;border-radius:6px}
