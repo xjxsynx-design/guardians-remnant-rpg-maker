@@ -1,10 +1,10 @@
-const BIOMES = {
-  Overworld: ["Grass","Dirt","Stone"],
-  Ruins: ["Stone","Moss","Dirt"],
-  Frozen: ["Snow","Ice","Stone"]
+const BIOMES={
+  Overworld:["Grass","Dirt","Stone"],
+  Ruins:["Stone","Moss","Dirt"],
+  Frozen:["Snow","Ice","Stone"]
 };
 
-const TILES = {
+const TILES={
   Grass:"#4caf50",
   Dirt:"#8b5a2b",
   Stone:"#777",
@@ -13,73 +13,57 @@ const TILES = {
   Ice:"#aee"
 };
 
-let currentBiome = "Overworld";
-let currentTile = "Grass";
+let currentBiome="Overworld";
+let currentTile="Grass";
 
-const biomeBar = document.getElementById("biomes");
-const paletteBar = document.getElementById("palette");
-const map = document.getElementById("map");
-const status = document.getElementById("status");
+const biomeBar=document.getElementById("biomes");
+const paletteBar=document.getElementById("palette");
+const map=document.getElementById("map");
+const status=document.getElementById("status");
 
-function updateStatus() {
-  status.textContent = `Biome: ${currentBiome} | Tile: ${currentTile}`;
+function updateStatus(){
+  status.textContent=`Biome: ${currentBiome} | Tile: ${currentTile}`;
 }
 
-// Build Biomes Buttons
-function buildBiomes() {
-  biomeBar.innerHTML = "";
-  Object.keys(BIOMES).forEach(b => {
-    const btn = document.createElement("button");
-    btn.textContent = b;
-    if (b === currentBiome) btn.classList.add("active");
-
-    btn.addEventListener('click', () => {
-      // Remove active from previous
-      document.querySelectorAll('#biomes button').forEach(but => but.classList.remove('active'));
-      // Set active on clicked
-      btn.classList.add('active');
-      currentBiome = b;
-      currentTile = BIOMES[b][0];
-      buildPalette(); // Update palette for new biome
+function buildBiomes(){
+  biomeBar.innerHTML="";
+  Object.keys(BIOMES).forEach(b=>{
+    const btn=document.createElement("button");
+    btn.textContent=b;
+    if(b===currentBiome)btn.classList.add("active");
+    btn.onclick=()=>{
+      currentBiome=b;
+      currentTile=BIOMES[b][0];
+      buildBiomes();
+      buildPalette();
       updateStatus();
-    });
-
+    };
     biomeBar.appendChild(btn);
   });
 }
 
-// Build Palette Tiles
-function buildPalette() {
-  paletteBar.innerHTML = "";
-  BIOMES[currentBiome].forEach(t => {
-    const d = document.createElement("div");
-    d.className = "palette-tile";
-    d.style.background = TILES[t];
-
-    if (t === currentTile) d.classList.add("selected");
-
-    d.addEventListener('click', () => {
-      // Remove selected from other tiles
-      document.querySelectorAll('.palette-tile').forEach(tile => tile.classList.remove('selected'));
-      // Set selected on clicked
-      d.classList.add('selected');
-      currentTile = t;
+function buildPalette(){
+  paletteBar.innerHTML="";
+  BIOMES[currentBiome].forEach(t=>{
+    const d=document.createElement("div");
+    d.className="palette-tile";
+    d.style.background=TILES[t];
+    if(t===currentTile)d.classList.add("selected");
+    d.onclick=()=>{
+      currentTile=t;
+      buildPalette();
       updateStatus();
-    });
-
+    };
     paletteBar.appendChild(d);
   });
 }
 
-// Build Map
-function buildMap() {
-  map.innerHTML = "";
-  for(let i=0; i<100; i++){
-    const d = document.createElement("div");
-    d.className = "tile";
-    d.addEventListener('click', () => {
-      d.style.background = TILES[currentTile];
-    });
+function buildMap(){
+  map.innerHTML="";
+  for(let i=0;i<100;i++){
+    const d=document.createElement("div");
+    d.className="tile";
+    d.onclick=()=>d.style.background=TILES[currentTile];
     map.appendChild(d);
   }
 }
