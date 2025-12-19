@@ -15,9 +15,10 @@ header{text-align:center;padding:10px;background:#1b1b1b}
   box-shadow: 0 0 6px rgba(33,150,243,.7);
 }
 
-#eraserBtn.mode-active {
+#eraserBtn.eraser-active {
   background: #e53935;
-  box-shadow: 0 0 6px rgba(229,57,53,.7);
+  box-shadow: 0 0 8px rgba(229,57,53,.8);
+  color: white;
 }
 
 #biomes,#palette{display:flex;gap:8px;padding:10px;background:#222;overflow-x:auto}
