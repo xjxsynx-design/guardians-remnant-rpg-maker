@@ -274,3 +274,38 @@ body{
   .action-btn{ min-width: 70px; padding: 10px 10px; }
   .palette{ grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 }
+
+/* Object/Palette icon (themed, non-emoji) */
+.pal-icon{
+  position:absolute;
+  top:10px;
+  left:10px;
+  right:10px;
+  bottom:34px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  filter: drop-shadow(0 2px 0 rgba(0,0,0,.55));
+  pointer-events:none;
+}
+.pal-icon svg{
+  width: 62%;
+  height: 62%;
+}
+
+.pal-tile:not(.active) .pal-label{
+  opacity: .70;
+}
+.pal-tile.active .pal-label{
+  opacity: .95;
+}
+
+/* Object rendering in grid */
+.obj{
+  color: rgba(230,230,230,.90);
+}
+.obj svg{
+  width: 58%;
+  height: 58%;
+  filter: drop-shadow(0 2px 0 rgba(0,0,0,.55));
+}
