@@ -37,7 +37,17 @@ const statusEl = document.getElementById("status");
 const paletteEl = document.getElementById("palette");
 const paletteTitleEl = document.getElementById("paletteTitle");
 const mapCanvas = document.getElementById("map");
-const ctx = mapCanvas.getContext("2d", { alpha: false });
+/**  {CanvasRenderingContext2D|null} */
+let ctx = null;
+
+function get2dContext(canvas){
+  // iOS Safari can be picky about context options; fall back safely.
+  try{
+    return canvas.getContext("2d", { alpha: false }) || canvas.getContext("2d");
+  }catch(_e){
+    try{ return canvas.getContext("2d"); }catch(_e2){ return null; }
+  }
+}
 
 const btnTerrain = document.getElementById("modeTerrain");
 const btnObjects = document.getElementById("modeObjects");
@@ -231,8 +241,17 @@ let painting = false;
 let lastCell = null;
 
 function resizeCanvas(){
+  if(!mapCanvas) return;
+  if(!ctx) ctx = get2dContext(mapCanvas);
+  if(!ctx){
+    statusEl.textContent = "Canvas error (2D context unavailable)";
+    return;
+  }
+
   // Make the canvas sharp on retina and fit container width while preserving square.
-  const cssWidth = Math.min(window.innerWidth * 0.92, 520);
+  const wrap = mapCanvas.parentElement;
+  const maxPx = 520;
+  const cssWidth = Math.min((wrap && wrap.clientWidth ? wrap.clientWidth : window.innerWidth) * 1.0, maxPx);
   const cssHeight = cssWidth; // square
   const dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
 
@@ -365,6 +384,7 @@ function rememberLayer(){
 }
 
 function render(){
+  if(!ctx) return;
   const w = mapCanvas.width, h = mapCanvas.height;
   ctx.clearRect(0,0,w,h);
   ctx.fillStyle = "#0a0c10";
@@ -609,15 +629,27 @@ function flashStatus(msg){
 
 // Init
 function init(){
-  buildPalette();
-  updateStatus();
-  resizeCanvas();
+  try{
+    ctx = get2dContext(mapCanvas);
+    buildPalette();
+    updateStatus();
+    resizeCanvas();
 
-  // attempt load saved
-  const saved = loadLocal();
-  if(saved){
-    try{ applySnapshot(saved); }catch(e){}
+    const saved = loadLocal();
+    if(saved){
+      try{ applySnapshot(saved); }catch(_e){}
+    }
+  }catch(e){
+    console.error(e);
+    if(statusEl){
+      statusEl.textContent = "Init error: " + ((e && e.message) ? e.message : e);
+      statusEl.style.color = "#f2d37a";
+    }
   }
 }
 window.addEventListener("resize", ()=>{ resizeCanvas(); });
-init();
+if(document.readyState === "loading"){
+  document.addEventListener("DOMContentLoaded", init);
+} else {
+  init();
+}
