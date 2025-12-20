@@ -211,3 +211,31 @@ h1 .sub{
   .tilebtn{width: 122px; max-width: 122px}
   .tilepreview{width: 88px; height:88px}
 }
+
+
+/* ---- Palette sizing (mobile-friendly) ---- */
+body.pal-sm .palette{grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 10px;}
+body.pal-sm .tilebtn{width: 96px; max-width:96px; padding: 8px 8px 6px; border-radius: 14px;}
+body.pal-sm .tilepreview{width: 64px; height: 64px; border-radius: 12px;}
+body.pal-sm .tilebtn .label{font-size: .78rem}
+
+body.pal-md .palette{grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); gap: 12px;}
+body.pal-md .tilebtn{width: 112px; max-width:112px;}
+body.pal-md .tilepreview{width: 76px; height: 76px;}
+
+body.pal-lg .palette{grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 12px;}
+body.pal-lg .tilebtn{width: 132px; max-width:132px;}
+body.pal-lg .tilepreview{width: 96px; height: 96px;}
+
+.btn.small{
+  min-width: 96px;
+  padding: 10px 12px;
+  font-weight: 850;
+}
+
+/* Canvas integer scaling helper: keep crisp pixels */
+#mapCanvas{
+  display:block;
+  width: auto; /* JS sets to an integer multiple */
+  height: auto;
+}
