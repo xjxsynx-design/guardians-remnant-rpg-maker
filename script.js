@@ -2,8 +2,8 @@
   "use strict";
 
   // ====== CONFIG ======
-  const TILE = 32;             // tileset tile size (px)
-  const TS_COLS = 8;           // tileset columns (256px / 32px)
+  const TILE = 64;             // tileset tile size (px)
+  const TS_COLS = 24;           // tileset columns (256px / 32px)
   const MAP_COLS = 16;
   const MAP_ROWS = 12;
 
@@ -36,18 +36,18 @@
     Cabin:    26,
     Sign:     27,
 
-    // Wildlife (single tile for now)
-    Deer: 28,
-    Wolf: 29,
-    Boar: 30,
-    Bird: 31,
-    Bear: 32,
+    // Wildlife (single tile)
+    Deer: 384,
+    Wolf: 385,
+    Boar: 386,
+    Bear: 387,
+    Bird: 388,
   };
 
   const BIOMES = {
-    overworld: { name: "Overworld", tiles: [TERRAIN.Grass, TERRAIN.Dirt, TERRAIN.Stone], defaultTile: -1 },
-    ruins:     { name: "Ruins",     tiles: [TERRAIN.Stone, TERRAIN.Moss, TERRAIN.Dirt], defaultTile: -1 },
-    frozen:    { name: "Frozen",    tiles: [TERRAIN.Snow, TERRAIN.Ice, TERRAIN.Stone], defaultTile: -1 },
+    overworld: { name: "Overworld", tiles: [TERRAIN.Grass, TERRAIN.Dirt, TERRAIN.Stone], defaultTile: TERRAIN.Grass },
+    ruins:     { name: "Ruins",     tiles: [TERRAIN.Stone, TERRAIN.Moss, TERRAIN.Dirt], defaultTile: TERRAIN.Stone },
+    frozen:    { name: "Frozen",    tiles: [TERRAIN.Snow, TERRAIN.Ice, TERRAIN.Stone], defaultTile: TERRAIN.Snow  },
   };
 
   // ====== MULTI-TILE OBJECT STAMPS ======
@@ -128,12 +128,7 @@
   const btnRuins     = document.getElementById("btnRuins");
   const btnFrozen    = document.getElementById("btnFrozen");
 
-  const btnPalSmall = document.getElementById("btnPalSmall");
-  const btnPalMed   = document.getElementById("btnPalMed");
-  const btnPalLarge = document.getElementById("btnPalLarge");
-
   const canvas = document.getElementById("mapCanvas");
-  const mapFrame = document.getElementById("mapFrame");
   let ctx = null;
 
   const tilesetImg = document.getElementById("tilesetImg");
@@ -142,7 +137,6 @@
   let mode = "terrain"; // "terrain" | "objects"
   let eraser = false;
   let biome = "overworld";
-  let paletteSize = "md"; // "sm" | "md" | "lg"
 
   let selectedTerrain = BIOMES[biome].defaultTile;
   let selectedObject = OBJECTS.Tree;
@@ -189,15 +183,6 @@
     return (OBJECT_DEFS[objId]?.label) || `Obj ${objId}`;
   }
 
-
-  function applyPaletteSize(){
-    document.body.classList.remove("pal-sm","pal-md","pal-lg");
-    document.body.classList.add(paletteSize === "sm" ? "pal-sm" : paletteSize === "lg" ? "pal-lg" : "pal-md");
-    btnPalSmall?.classList.toggle("active", paletteSize === "sm");
-    btnPalMed?.classList.toggle("active", paletteSize === "md");
-    btnPalLarge?.classList.toggle("active", paletteSize === "lg");
-  }
-
   function setActiveButtons(){
     btnTerrain.classList.toggle("active", mode === "terrain" && !eraser);
     btnObjects.classList.toggle("active", mode === "objects" && !eraser);
@@ -208,7 +193,6 @@
     btnFrozen.classList.toggle("active", biome === "frozen");
 
     setStatus();
-    applyPaletteSize();
   }
 
   function ensureContext(){
@@ -227,22 +211,7 @@
   function sizeCanvas(){
     canvas.width = MAP_COLS * TILE;
     canvas.height = MAP_ROWS * TILE;
-    fitCanvas();
     redraw();
-  }
-
-  function fitCanvas(){
-    // Keep crisp pixels by scaling the canvas by an *integer* factor in CSS.
-    const baseW = MAP_COLS * TILE;
-    const baseH = MAP_ROWS * TILE;
-
-    const frameW = mapFrame ? mapFrame.clientWidth : baseW;
-    // a little padding tolerance inside the frame
-    const usable = Math.max(1, frameW - 8);
-    const scale = clamp(Math.floor(usable / baseW), 1, 6);
-
-    canvas.style.width  = (baseW * scale) + "px";
-    canvas.style.height = (baseH * scale) + "px";
   }
 
   function drawTile(tileIndex, x, y){
@@ -446,7 +415,7 @@
 
     if(eraser){
       if(mode === "terrain"){
-        terrainLayer[idx(tx,ty)] = -1;
+        terrainLayer[idx(tx,ty)] = BIOMES[biome].defaultTile;
       }else{
         const i = findTopObjectAt(tx,ty);
         if(i >= 0) objects.splice(i,1);
@@ -519,7 +488,7 @@
     biome = (data.biome && BIOMES[data.biome]) ? data.biome : "overworld";
     const t = data.terrain;
     for(let i=0;i<terrainLayer.length;i++){
-      terrainLayer[i] = (typeof t[i] === "number") ? t[i] : -1;
+      terrainLayer[i] = (typeof t[i] === "number") ? t[i] : BIOMES[biome].defaultTile;
     }
     objects = Array.isArray(data.objects) ? data.objects
       .filter(o => o && typeof o.id === "number" && typeof o.x === "number" && typeof o.y === "number")
@@ -573,7 +542,7 @@
   }
 
   function clearMap(){
-    terrainLayer.fill(-1);
+    terrainLayer.fill(BIOMES[biome].defaultTile);
     objects = [];
     lastCell = null;
     redraw();
@@ -616,16 +585,6 @@
   btnRuins.addEventListener("click", ()=> setBiome("ruins"));
   btnFrozen.addEventListener("click", ()=> setBiome("frozen"));
 
-
-  // palette sizing
-  btnPalSmall?.addEventListener("click", ()=>{ paletteSize="sm"; applyPaletteSize(); });
-  btnPalMed?.addEventListener("click", ()=>{ paletteSize="md"; applyPaletteSize(); });
-  btnPalLarge?.addEventListener("click", ()=>{ paletteSize="lg"; applyPaletteSize(); });
-
-  // resize/orientation: keep integer scaling
-  window.addEventListener("resize", ()=>{ fitCanvas(); redraw(); }, {passive:true});
-    window.addEventListener("orientationchange", ()=>{ setTimeout(()=>{ fitCanvas(); redraw(); }, 120); }, {passive:true});
-
   // prevent page scrolling while interacting with canvas
   canvas.style.touchAction = "none";
   canvas.addEventListener("pointerdown", onPointerDown, {passive:false});
@@ -634,11 +593,8 @@
 
   // ====== INIT ======
   function init(){
-    // default palette size
-    applyPaletteSize();
-
-    // init terrain blank
-    terrainLayer.fill(-1);
+    // init terrain to default biome
+    terrainLayer.fill(BIOMES[biome].defaultTile);
 
     // tileset load
     if(!tilesetImg.complete){
@@ -660,7 +616,7 @@
       redraw();
     }
 
-    tipEl.textContent = "Tip: drag to paint • palette size buttons change tile button size • eraser removes the active layer";
+    tipEl.textContent = "Tip: drag to paint • buildings can be multi-tile (up to 4×4 later) • eraser removes the active layer";
   }
 
   init();
