@@ -1,23 +1,26 @@
 (() => {
   "use strict";
 
-  // ====== Config ======
-  const TILE = 24;              // tileset tile size in pixels
-  const TS_COLS = 8;            // tileset columns (matches tileset.png generation)
+  // ====== CONFIG ======
+  const TILE = 32;             // tileset tile size (px)
+  const TS_COLS = 8;           // tileset columns (256px / 32px)
   const MAP_COLS = 16;
   const MAP_ROWS = 12;
 
-  // Tileset indices (same as tileset.png)
+  // ====== TILE IDS ======
   const TERRAIN = {
     Grass: 0,
-    Dirt: 1,
+    Dirt:  1,
     Stone: 2,
-    Moss: 3,
-    Snow: 4,
-    Ice:  5,
+    Moss:  3,
+    Snow:  4,
+    Ice:   5,
   };
 
+  // NOTE: IDs here are "object IDs" (selection + save/load), not necessarily equal to
+  // the tileset tile indices used for rendering multi-tile stamps.
   const OBJECTS = {
+    // Single-tile objects (their id == tileset tile index)
     Tree:   16,
     Pine:   17,
     Rock:   18,
@@ -25,48 +28,133 @@
     Pillar: 20,
     Rubble: 21,
     Crystal:22,
+
+    // Buildings / props (now MULTI-TILE stamps)
+    House:    23,
+    Shop:     24,
+    Fountain: 25,
+    Cabin:    26,
+    Sign:     27,
+
+    // Wildlife (single tile for now)
+    Deer: 28,
+    Wolf: 29,
+    Boar: 30,
+    Bird: 31,
+    Bear: 32,
   };
 
   const BIOMES = {
     overworld: { name: "Overworld", tiles: [TERRAIN.Grass, TERRAIN.Dirt, TERRAIN.Stone], defaultTile: TERRAIN.Grass },
     ruins:     { name: "Ruins",     tiles: [TERRAIN.Stone, TERRAIN.Moss, TERRAIN.Dirt], defaultTile: TERRAIN.Stone },
-    frozen:    { name: "Frozen",    tiles: [TERRAIN.Snow, TERRAIN.Ice, TERRAIN.Stone],  defaultTile: TERRAIN.Snow  },
+    frozen:    { name: "Frozen",    tiles: [TERRAIN.Snow, TERRAIN.Ice, TERRAIN.Stone], defaultTile: TERRAIN.Snow  },
+  };
+
+  // ====== MULTI-TILE OBJECT STAMPS ======
+  // Each stamp entry is a tileset tile index (row-major on the tileset).
+  // Use -1 for transparent "no tile" cells.
+  //
+  // We placed new 2x2 building art into the tileset at indices:
+  // House:    40,41 / 48,49
+  // Shop:     42,43 / 50,51
+  // Fountain: 44,45 / 52,53
+  // Cabin:    46,47 / 54,55
+  const OBJECT_DEFS = {
+    // Single-tile objects: stamp is just the object's id
+    [OBJECTS.Tree]:   { id: OBJECTS.Tree,   label: "Tree",   w: 1, h: 1, stamp: [[16]] },
+    [OBJECTS.Pine]:   { id: OBJECTS.Pine,   label: "Pine",   w: 1, h: 1, stamp: [[17]] },
+    [OBJECTS.Rock]:   { id: OBJECTS.Rock,   label: "Rock",   w: 1, h: 1, stamp: [[18]] },
+    [OBJECTS.Chest]:  { id: OBJECTS.Chest,  label: "Chest",  w: 1, h: 1, stamp: [[19]] },
+    [OBJECTS.Pillar]: { id: OBJECTS.Pillar, label: "Pillar", w: 1, h: 1, stamp: [[20]] },
+    [OBJECTS.Rubble]: { id: OBJECTS.Rubble, label: "Rubble", w: 1, h: 1, stamp: [[21]] },
+    [OBJECTS.Crystal]:{ id: OBJECTS.Crystal,label: "Crystal",w: 1, h: 1, stamp: [[22]] },
+
+    // Multi-tile buildings (2x2 for now; framework supports up to 4x4)
+    [OBJECTS.House]:    { id: OBJECTS.House,    label: "House",    w: 2, h: 2, stamp: [[40,41],[48,49]] },
+    [OBJECTS.Shop]:     { id: OBJECTS.Shop,     label: "Shop",     w: 2, h: 2, stamp: [[42,43],[50,51]] },
+    [OBJECTS.Fountain]: { id: OBJECTS.Fountain, label: "Fountain", w: 2, h: 2, stamp: [[44,45],[52,53]] },
+    [OBJECTS.Cabin]:    { id: OBJECTS.Cabin,    label: "Cabin",    w: 2, h: 2, stamp: [[46,47],[54,55]] },
+
+    // Sign is still single-tile for now
+    [OBJECTS.Sign]:     { id: OBJECTS.Sign,     label: "Sign",     w: 1, h: 1, stamp: [[27]] },
+
+    // Wildlife (single)
+    [OBJECTS.Deer]: { id: OBJECTS.Deer, label: "Deer", w:1, h:1, stamp:[[28]] },
+    [OBJECTS.Wolf]: { id: OBJECTS.Wolf, label: "Wolf", w:1, h:1, stamp:[[29]] },
+    [OBJECTS.Boar]: { id: OBJECTS.Boar, label: "Boar", w:1, h:1, stamp:[[30]] },
+    [OBJECTS.Bird]: { id: OBJECTS.Bird, label: "Bird", w:1, h:1, stamp:[[31]] },
+    [OBJECTS.Bear]: { id: OBJECTS.Bear, label: "Bear", w:1, h:1, stamp:[[32]] },
   };
 
   const OBJECT_TILE_LIST = [
     { id: OBJECTS.Tree, label: "Tree" },
     { id: OBJECTS.Pine, label: "Pine" },
     { id: OBJECTS.Rock, label: "Rock" },
+    { id: OBJECTS.Deer, label: "Deer" },
+    { id: OBJECTS.Wolf, label: "Wolf" },
+    { id: OBJECTS.Boar, label: "Boar" },
+    { id: OBJECTS.Bird, label: "Bird" },
+    { id: OBJECTS.Bear, label: "Bear" },
   ];
+
   const OBJECT_TILE_LIST_2 = [
     { id: OBJECTS.Chest, label: "Chest" },
+    { id: OBJECTS.House, label: "House" },
+    { id: OBJECTS.Shop, label: "Shop" },
+    { id: OBJECTS.Fountain, label: "Fountain" },
+    { id: OBJECTS.Cabin, label: "Cabin" },
+    { id: OBJECTS.Sign, label: "Sign" },
     { id: OBJECTS.Pillar, label: "Pillar" },
     { id: OBJECTS.Rubble, label: "Rubble" },
     { id: OBJECTS.Crystal, label: "Crystal" },
   ];
 
-  // ====== State ======
-  let mode = "terrain";                // 'terrain' | 'objects' | 'eraser'
-  let biome = "overworld";
-  let selectedTerrain = BIOMES[biome].defaultTile;
-  let selectedObject  = OBJECTS.Tree;
-  let lastCell = null;                 // for cursor
-
-  // layers
-  let terrainLayer = new Array(MAP_COLS * MAP_ROWS).fill(BIOMES[biome].defaultTile);
-  let objectLayer  = new Array(MAP_COLS * MAP_ROWS).fill(-1);
-
-  // rendering
-  const canvas = document.getElementById("mapCanvas");
-  const ctx = canvas.getContext("2d");
+  // ====== DOM ======
   const statusEl = document.getElementById("status");
+  const paletteTitleEl = document.getElementById("paletteTitle");
   const paletteEl = document.getElementById("palette");
-  const paletteTitle = document.getElementById("paletteTitle");
+  const tipEl = document.getElementById("tip");
+
+  const btnTerrain = document.getElementById("btnTerrain");
+  const btnObjects = document.getElementById("btnObjects");
+  const btnEraser  = document.getElementById("btnEraser");
+  const btnSave    = document.getElementById("btnSave");
+  const btnLoad    = document.getElementById("btnLoad");
+  const btnExport  = document.getElementById("btnExport");
+  const btnImport  = document.getElementById("btnImport");
+  const btnClear   = document.getElementById("btnClear");
+
+  const btnOverworld = document.getElementById("btnOverworld");
+  const btnRuins     = document.getElementById("btnRuins");
+  const btnFrozen    = document.getElementById("btnFrozen");
+
+  const canvas = document.getElementById("mapCanvas");
+  let ctx = null;
 
   const tilesetImg = document.getElementById("tilesetImg");
 
-  // ====== Helpers ======
-  const idx = (x, y) => y * MAP_COLS + x;
+  // ====== STATE ======
+  let mode = "terrain"; // "terrain" | "objects"
+  let eraser = false;
+  let biome = "overworld";
+
+  let selectedTerrain = BIOMES[biome].defaultTile;
+  let selectedObject = OBJECTS.Tree;
+
+  // terrain: per-cell tile index
+  const terrainLayer = new Int16Array(MAP_COLS * MAP_ROWS);
+
+  // objects: list of instances {id, x, y}
+  let objects = [];
+
+  let lastCell = null;
+  let isDown = false;
+  let lastPaintKey = "";
+
+  const STORAGE_KEY = "gr_world_v4c_layers_tileset";
+
+  // ====== HELPERS ======
+  const idx = (x,y) => y*MAP_COLS + x;
 
   function tileSrcRect(tileIndex){
     const sx = (tileIndex % TS_COLS) * TILE;
@@ -74,128 +162,199 @@
     return { sx, sy };
   }
 
-  function setStatus(text){
-    statusEl.textContent = text;
+  function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+
+  function setStatus(){
+    const biomeName = BIOMES[biome].name;
+    const modeLabel = eraser ? "Eraser" : (mode === "terrain" ? "Terrain" : "Objects");
+    const selLabel = eraser ? "" : (mode === "terrain" ? terrainLabel(selectedTerrain) : objectLabel(selectedObject));
+    const txt = selLabel ? `${modeLabel} • ${biomeName} • ${selLabel}` : `${modeLabel} • ${biomeName}`;
+    statusEl.textContent = txt;
   }
 
-  function currentSelectionLabel(){
-    if(mode === "terrain" || mode === "eraser"){
-      const name = Object.keys(TERRAIN).find(k => TERRAIN[k] === selectedTerrain) || "Tile";
-      return `${cap(mode)} • ${BIOMES[biome].name} • ${name}`;
+  function terrainLabel(tileId){
+    for(const [k,v] of Object.entries(TERRAIN)){
+      if(v === tileId) return k;
     }
-    const oname = Object.keys(OBJECTS).find(k => OBJECTS[k] === selectedObject) || "Object";
-    return `${cap(mode)} • ${BIOMES[biome].name} • ${oname}`;
+    return `Tile ${tileId}`;
   }
 
-  function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
-
-  function saveToLocal(){
-    const payload = {
-      v: 1,
-      cols: MAP_COLS,
-      rows: MAP_ROWS,
-      biome,
-      terrain: terrainLayer,
-      objects: objectLayer,
-    };
-    localStorage.setItem("gr_world_v4c", JSON.stringify(payload));
+  function objectLabel(objId){
+    return (OBJECT_DEFS[objId]?.label) || `Obj ${objId}`;
   }
 
-  function loadFromLocal(){
-    const raw = localStorage.getItem("gr_world_v4c");
-    if(!raw) return false;
-    try{
-      const data = JSON.parse(raw);
-      if(!data || data.v !== 1) return false;
-      if(data.cols !== MAP_COLS || data.rows !== MAP_ROWS) return false;
-      biome = data.biome in BIOMES ? data.biome : "overworld";
-      terrainLayer = Array.isArray(data.terrain) ? data.terrain.slice(0, MAP_COLS*MAP_ROWS) : terrainLayer;
-      objectLayer  = Array.isArray(data.objects) ? data.objects.slice(0, MAP_COLS*MAP_ROWS) : objectLayer;
-      // pad if short
-      while(terrainLayer.length < MAP_COLS*MAP_ROWS) terrainLayer.push(BIOMES[biome].defaultTile);
-      while(objectLayer.length < MAP_COLS*MAP_ROWS) objectLayer.push(-1);
-      return true;
-    }catch(_e){
+  function setActiveButtons(){
+    btnTerrain.classList.toggle("active", mode === "terrain" && !eraser);
+    btnObjects.classList.toggle("active", mode === "objects" && !eraser);
+    btnEraser.classList.toggle("active", eraser);
+
+    btnOverworld.classList.toggle("active", biome === "overworld");
+    btnRuins.classList.toggle("active", biome === "ruins");
+    btnFrozen.classList.toggle("active", biome === "frozen");
+
+    setStatus();
+  }
+
+  function ensureContext(){
+    if(ctx) return true;
+    // iOS Safari can be picky about 2D context options
+    ctx = canvas.getContext("2d", { alpha: false });
+    if(!ctx) ctx = canvas.getContext("2d");
+    if(!ctx){
+      statusEl.textContent = "Canvas init failed (iOS). Try refresh / cache-bust.";
       return false;
     }
+    ctx.imageSmoothingEnabled = false;
+    return true;
   }
 
-  async function exportJSON(){
-    const payload = {
-      v: 1,
-      cols: MAP_COLS,
-      rows: MAP_ROWS,
-      biome,
-      terrain: terrainLayer,
-      objects: objectLayer,
-    };
-    const txt = JSON.stringify(payload);
-    // try clipboard
-    try{
-      await navigator.clipboard.writeText(txt);
-      alert("Export copied to clipboard ✅");
-    }catch(_e){
-      prompt("Copy this JSON:", txt);
-    }
-  }
-
-  function importJSON(){
-    const txt = prompt("Paste exported JSON:");
-    if(!txt) return;
-    try{
-      const data = JSON.parse(txt);
-      if(!data || data.v !== 1) throw new Error("Invalid version");
-      if(data.cols !== MAP_COLS || data.rows !== MAP_ROWS) throw new Error("Map size mismatch");
-      biome = data.biome in BIOMES ? data.biome : "overworld";
-      terrainLayer = data.terrain.slice(0, MAP_COLS*MAP_ROWS);
-      objectLayer  = data.objects.slice(0, MAP_COLS*MAP_ROWS);
-      while(terrainLayer.length < MAP_COLS*MAP_ROWS) terrainLayer.push(BIOMES[biome].defaultTile);
-      while(objectLayer.length < MAP_COLS*MAP_ROWS) objectLayer.push(-1);
-      selectedTerrain = BIOMES[biome].defaultTile;
-      setActiveButtons();
-      buildPalette();
-      redraw();
-      alert("Imported ✅");
-    }catch(e){
-      alert("Import failed: " + (e?.message || "bad JSON"));
-    }
-  }
-
-  function clearMap(){
-    terrainLayer.fill(BIOMES[biome].defaultTile);
-    objectLayer.fill(-1);
-    lastCell = null;
+  function sizeCanvas(){
+    canvas.width = MAP_COLS * TILE;
+    canvas.height = MAP_ROWS * TILE;
     redraw();
   }
 
-  // ====== UI ======
-  function setActiveButtons(){
-    // mode buttons
-    document.querySelectorAll(".btn.mode").forEach(b => b.classList.toggle("active", b.dataset.mode === mode));
-    // biome buttons
-    document.querySelectorAll(".btn.biome").forEach(b => b.classList.toggle("active", b.dataset.biome === biome));
-    setStatus(currentSelectionLabel());
+  function drawTile(tileIndex, x, y){
+    if(tileIndex == null || tileIndex < 0) return;
+    const { sx, sy } = tileSrcRect(tileIndex);
+    ctx.drawImage(tilesetImg, sx, sy, TILE, TILE, x*TILE, y*TILE, TILE, TILE);
   }
 
+  function drawStamp(stamp, x, y){
+    const h = stamp.length;
+    const w = stamp[0].length;
+    for(let dy=0; dy<h; dy++){
+      for(let dx=0; dx<w; dx++){
+        const t = stamp[dy][dx];
+        if(t >= 0) drawTile(t, x+dx, y+dy);
+      }
+    }
+  }
+
+  function objectBounds(obj){
+    const def = OBJECT_DEFS[obj.id];
+    return { x: obj.x, y: obj.y, w: def?.w || 1, h: def?.h || 1 };
+  }
+
+  function findTopObjectAt(tx, ty){
+    for(let i=objects.length-1; i>=0; i--){
+      const o = objects[i];
+      const b = objectBounds(o);
+      if(tx >= b.x && tx < b.x+b.w && ty >= b.y && ty < b.y+b.h){
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  // ====== RENDER ======
+  function redraw(){
+    if(!ensureContext()) return;
+    if(!tilesetImg.complete) return;
+
+    ctx.clearRect(0,0,canvas.width, canvas.height);
+
+    // background
+    ctx.fillStyle = "rgba(0,0,0,0.15)";
+    ctx.fillRect(0,0,canvas.width, canvas.height);
+
+    // terrain
+    for(let y=0;y<MAP_ROWS;y++){
+      for(let x=0;x<MAP_COLS;x++){
+        drawTile(terrainLayer[idx(x,y)], x, y);
+      }
+    }
+
+    // objects (instances)
+    for(const o of objects){
+      const def = OBJECT_DEFS[o.id];
+      if(!def) continue;
+      drawStamp(def.stamp, o.x, o.y);
+    }
+
+    // gridlines (subtle ALTTP-ish)
+    const w = MAP_COLS*TILE, h = MAP_ROWS*TILE;
+    ctx.strokeStyle = "rgba(0,0,0,0.35)";
+    ctx.lineWidth = 1;
+
+    for(let gx=0; gx<=MAP_COLS; gx++){
+      ctx.globalAlpha = (gx%2===0) ? 0.30 : 0.18;
+      ctx.beginPath();
+      ctx.moveTo(gx*TILE+0.5, 0);
+      ctx.lineTo(gx*TILE+0.5, h);
+      ctx.stroke();
+    }
+    for(let gy=0; gy<=MAP_ROWS; gy++){
+      ctx.globalAlpha = (gy%2===0) ? 0.30 : 0.18;
+      ctx.beginPath();
+      ctx.moveTo(0, gy*TILE+0.5);
+      ctx.lineTo(w, gy*TILE+0.5);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    // cursor / preview
+    if(lastCell){
+      const {x,y} = lastCell;
+      ctx.save();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "rgba(201,164,65,0.95)";
+      ctx.shadowColor = "rgba(0,0,0,0.55)";
+      ctx.shadowBlur = 6;
+
+      if(mode === "objects" && !eraser){
+        const def = OBJECT_DEFS[selectedObject];
+        if(def){
+          ctx.strokeRect(x*TILE+1, y*TILE+1, def.w*TILE-2, def.h*TILE-2);
+        }else{
+          ctx.strokeRect(x*TILE+1, y*TILE+1, TILE-2, TILE-2);
+        }
+      }else{
+        ctx.strokeRect(x*TILE+1, y*TILE+1, TILE-2, TILE-2);
+      }
+      ctx.restore();
+    }
+  }
+
+  // ====== PALETTE ======
   function buildPalette(){
     paletteEl.innerHTML = "";
 
-    const makeTileButton = (tileId, label, selected) => {
+    const makeBtn = ({id, label}, selected) => {
+      const def = OBJECT_DEFS[id];
+
       const btn = document.createElement("button");
-      btn.className = "tilebtn" + (selected ? " active" : "");
       btn.type = "button";
-      btn.dataset.tileId = String(tileId);
+      btn.className = "tilebtn" + (selected ? " active" : "");
+      btn.dataset.tileId = String(id);
 
       const c = document.createElement("canvas");
       c.className = "tilepreview";
-      // draw at native TILE px then upscales via CSS
-      c.width = TILE;
-      c.height = TILE;
+      const pw = (def?.w || 1);
+      const ph = (def?.h || 1);
+      // Draw at native pixels; CSS will scale
+      c.width = TILE * pw;
+      c.height = TILE * ph;
+
       const cctx = c.getContext("2d");
       cctx.imageSmoothingEnabled = false;
-      const { sx, sy } = tileSrcRect(tileId);
-      cctx.clearRect(0,0,TILE,TILE);
-      cctx.drawImage(tilesetImg, sx, sy, TILE, TILE, 0, 0, TILE, TILE);
+      cctx.clearRect(0,0,c.width,c.height);
+
+      if(mode === "objects"){
+        // draw stamp preview
+        const stamp = def?.stamp || [[id]];
+        for(let dy=0; dy<stamp.length; dy++){
+          for(let dx=0; dx<stamp[0].length; dx++){
+            const t = stamp[dy][dx];
+            if(t < 0) continue;
+            const {sx,sy} = tileSrcRect(t);
+            cctx.drawImage(tilesetImg, sx, sy, TILE, TILE, dx*TILE, dy*TILE, TILE, TILE);
+          }
+        }
+      }else{
+        const {sx,sy} = tileSrcRect(id);
+        cctx.drawImage(tilesetImg, sx, sy, TILE, TILE, 0, 0, TILE, TILE);
+      }
 
       const sp = document.createElement("div");
       sp.className = "label";
@@ -205,291 +364,259 @@
       btn.appendChild(sp);
 
       btn.addEventListener("click", () => {
-        if(mode === "terrain" || mode === "eraser"){
-          selectedTerrain = tileId;
+        if(mode === "objects"){
+          selectedObject = id;
         }else{
-          selectedObject = tileId;
+          selectedTerrain = id;
         }
-        // toggle active
-        [...paletteEl.querySelectorAll(".tilebtn")].forEach(x => x.classList.remove("active"));
-        btn.classList.add("active");
-        setStatus(currentSelectionLabel());
+        eraser = false;
+        setActiveButtons();
+        buildPalette();
+        redraw();
       });
 
       return btn;
     };
 
     if(mode === "objects"){
-      paletteTitle.textContent = "Objects";
-      // 3 across looks best on mobile
+      paletteTitleEl.textContent = "Objects";
       const list = [...OBJECT_TILE_LIST, ...OBJECT_TILE_LIST_2];
       for(const o of list){
-        paletteEl.appendChild(makeTileButton(o.id, o.label, o.id === selectedObject));
+        paletteEl.appendChild(makeBtn(o, o.id === selectedObject));
       }
     }else{
-      paletteTitle.textContent = "Tiles";
-      // per-biome terrain
+      paletteTitleEl.textContent = "Tiles";
       const tiles = BIOMES[biome].tiles;
-      const labels = Object.entries(TERRAIN).reduce((acc,[k,v]) => (acc[v]=k, acc), {});
       for(const t of tiles){
-        paletteEl.appendChild(makeTileButton(t, labels[t] || "Tile", t === selectedTerrain));
+        paletteEl.appendChild(makeBtn({id: t, label: terrainLabel(t)}, t === selectedTerrain));
       }
     }
   }
 
-  // ====== Rendering ======
-  function resizeCanvas(){
-    // keep canvas pixel-perfect; fit within container
-    const frame = canvas.parentElement;
-    const maxW = frame.clientWidth - 4;
-    const nativeW = MAP_COLS * TILE;
-    const nativeH = MAP_ROWS * TILE;
-
-    // if we have room, scale up by integer factor for clarity
-    let scale = Math.floor(maxW / nativeW);
-    if(scale < 1) scale = 1;
-    // cap so it doesn't get absurdly huge
-    scale = Math.min(scale, 2);
-
-    const cssW = nativeW * scale;
-    const cssH = nativeH * scale;
-
-    const dpr = Math.max(1, Math.floor(window.devicePixelRatio || 1));
-    canvas.style.width = cssW + "px";
-    canvas.style.height = cssH + "px";
-    canvas.width = cssW * dpr;
-    canvas.height = cssH * dpr;
-
-    ctx.setTransform(dpr,0,0,dpr,0,0);
-    ctx.imageSmoothingEnabled = false;
-
-    redraw();
+  // ====== INPUT ======
+  function eventToTile(ev){
+    const r = canvas.getBoundingClientRect();
+    const sx = canvas.width / r.width;
+    const sy = canvas.height / r.height;
+    const px = (ev.clientX - r.left) * sx;
+    const py = (ev.clientY - r.top)  * sy;
+    const tx = clamp(Math.floor(px / TILE), 0, MAP_COLS-1);
+    const ty = clamp(Math.floor(py / TILE), 0, MAP_ROWS-1);
+    return { tx, ty };
   }
 
-  function drawTile(tileId, x, y){
-    if(tileId === -1) return;
-    const { sx, sy } = tileSrcRect(tileId);
-    ctx.drawImage(tilesetImg, sx, sy, TILE, TILE, x*TILE, y*TILE, TILE, TILE);
-  }
+  function applyAt(tx, ty){
+    lastCell = {x: tx, y: ty};
 
-  function redraw(){
-    if(!tilesetImg.complete) return;
+    // prevent spamming same cell while dragging
+    const key = `${mode}|${eraser?"E":"P"}|${biome}|${tx},${ty}|${mode==="terrain"?selectedTerrain:selectedObject}`;
+    if(key === lastPaintKey) { redraw(); return; }
+    lastPaintKey = key;
 
-    // clear
-    ctx.clearRect(0,0, canvas.width, canvas.height);
-
-    // background grid (subtle)
-    const w = MAP_COLS*TILE, h=MAP_ROWS*TILE;
-    ctx.save();
-    ctx.imageSmoothingEnabled = false;
-    ctx.fillStyle = "rgba(0,0,0,0.15)";
-    ctx.fillRect(0,0,w,h);
-
-    // draw terrain
-    for(let y=0;y<MAP_ROWS;y++){
-      for(let x=0;x<MAP_COLS;x++){
-        drawTile(terrainLayer[idx(x,y)], x, y);
-      }
-    }
-    // draw objects
-    for(let y=0;y<MAP_ROWS;y++){
-      for(let x=0;x<MAP_COLS;x++){
-        drawTile(objectLayer[idx(x,y)], x, y);
-      }
-    }
-
-    // gridlines (ALTTP-ish subtle)
-    ctx.strokeStyle = "rgba(0,0,0,0.35)";
-    ctx.lineWidth = 1;
-    for(let x=0;x<=MAP_COLS;x++){
-      ctx.globalAlpha = (x%2===0) ? 0.30 : 0.18;
-      ctx.beginPath();
-      ctx.moveTo(x*TILE+0.5, 0);
-      ctx.lineTo(x*TILE+0.5, h);
-      ctx.stroke();
-    }
-    for(let y=0;y<=MAP_ROWS;y++){
-      ctx.globalAlpha = (y%2===0) ? 0.30 : 0.18;
-      ctx.beginPath();
-      ctx.moveTo(0, y*TILE+0.5);
-      ctx.lineTo(w, y*TILE+0.5);
-      ctx.stroke();
-    }
-    ctx.globalAlpha = 1;
-
-    // cursor
-    if(lastCell){
-      const {x,y} = lastCell;
-      ctx.save();
-      // dark outline
-      ctx.strokeStyle = "rgba(0,0,0,0.65)";
-      ctx.lineWidth = 2;
-      ctx.strokeRect(x*TILE+1, y*TILE+1, TILE-2, TILE-2);
-      // gold highlight
-      ctx.strokeStyle = "rgba(201,164,65,0.95)";
-      ctx.lineWidth = 2;
-      ctx.strokeRect(x*TILE+2, y*TILE+2, TILE-4, TILE-4);
-      ctx.restore();
-    }
-
-    ctx.restore();
-  }
-
-  // ====== Painting ======
-  let isDown = false;
-
-  function canvasToCell(evt){
-    const rect = canvas.getBoundingClientRect();
-    const x = (evt.clientX - rect.left) * (MAP_COLS*TILE / rect.width);
-    const y = (evt.clientY - rect.top) * (MAP_ROWS*TILE / rect.height);
-    const cx = Math.floor(x / TILE);
-    const cy = Math.floor(y / TILE);
-    if(cx<0 || cy<0 || cx>=MAP_COLS || cy>=MAP_ROWS) return null;
-    return { x: cx, y: cy };
-  }
-
-  function paintCell(cell){
-    if(!cell) return;
-    const i = idx(cell.x, cell.y);
-
-    if(mode === "terrain"){
-      terrainLayer[i] = selectedTerrain;
-    }else if(mode === "objects"){
-      objectLayer[i] = selectedObject;
-    }else{ // eraser removes active layer based on last mode buttons
-      // If user tapped Eraser button, we erase based on what was previously active:
-      // - If terrain tile is selected in palette title "Tiles", erase terrain to biome default
-      // - If objects title "Objects", erase object to empty
-      // We'll treat eraser as "erase terrain" when palette is Tiles, else objects.
-      // BUT: users expect eraser to erase current mode. We'll set eraser to erase terrain if terrain button was last active.
-      // We'll store lastNonEraserMode.
-    }
-
-    lastCell = cell;
-    redraw();
-  }
-
-  let lastNonEraserMode = "terrain";
-
-  function setMode(newMode){
-    if(newMode !== "eraser"){
-      lastNonEraserMode = newMode;
-      mode = newMode;
-    }else{
-      mode = "eraser";
-    }
-    setActiveButtons();
-    buildPalette(); // palette reflects mode
-  }
-
-  function eraseCell(cell){
-    if(!cell) return;
-    const i = idx(cell.x, cell.y);
-    if(lastNonEraserMode === "terrain"){
-      terrainLayer[i] = BIOMES[biome].defaultTile;
-    }else{
-      objectLayer[i] = -1;
-    }
-    lastCell = cell;
-    redraw();
-  }
-
-  function handlePointer(evt){
-    const cell = canvasToCell(evt);
-    if(mode === "eraser") eraseCell(cell);
-    else paintCell(cell);
-  }
-
-  // ====== Wire up ======
-  function bindUI(){
-    // mode buttons
-    document.querySelectorAll(".btn.mode").forEach(b => {
-      b.addEventListener("click", () => setMode(b.dataset.mode));
-    });
-
-    // biome buttons
-    document.querySelectorAll(".btn.biome").forEach(b => {
-      b.addEventListener("click", () => {
-        biome = b.dataset.biome;
-        // update defaults
-        selectedTerrain = BIOMES[biome].defaultTile;
-        // if eraser is active, keep it, but erase layer uses lastNonEraserMode
-        setActiveButtons();
-        buildPalette();
-        // if terrain layer is empty-ish, you can decide to refill; we won't auto-nuke user work
-        redraw();
-      });
-    });
-
-    // save/load/export/import/clear
-    document.getElementById("btnSave").addEventListener("click", () => {
-      saveToLocal();
-      alert("Saved ✅");
-    });
-
-    document.getElementById("btnLoad").addEventListener("click", () => {
-      const ok = loadFromLocal();
-      if(ok){
-        selectedTerrain = BIOMES[biome].defaultTile;
-        setActiveButtons();
-        buildPalette();
-        redraw();
-        alert("Loaded ✅");
+    if(eraser){
+      if(mode === "terrain"){
+        terrainLayer[idx(tx,ty)] = BIOMES[biome].defaultTile;
       }else{
-        alert("No save found (or wrong size).");
+        const i = findTopObjectAt(tx,ty);
+        if(i >= 0) objects.splice(i,1);
       }
-    });
-
-    document.getElementById("btnExport").addEventListener("click", exportJSON);
-    document.getElementById("btnImport").addEventListener("click", importJSON);
-
-    document.getElementById("btnClear").addEventListener("click", () => {
-      if(confirm("Clear the map?")){
-        clearMap();
-      }
-    });
-
-    // canvas pointer paint
-    canvas.addEventListener("pointerdown", (e) => {
-      isDown = true;
-      canvas.setPointerCapture(e.pointerId);
-      handlePointer(e);
-    });
-    canvas.addEventListener("pointermove", (e) => {
-      if(!isDown) return;
-      handlePointer(e);
-    });
-    const end = () => { isDown = false; };
-    canvas.addEventListener("pointerup", end);
-    canvas.addEventListener("pointercancel", end);
-    canvas.addEventListener("pointerleave", end);
-
-    // prevent double-tap zoom while painting
-    canvas.addEventListener("touchstart", (e) => { e.preventDefault(); }, { passive:false });
-    canvas.addEventListener("touchmove", (e) => { e.preventDefault(); }, { passive:false });
-  }
-
-  function init(){
-    // guard: canvas context
-    if(!ctx){
-      setStatus("Error: Canvas not supported on this browser.");
+      redraw();
       return;
     }
-    tilesetImg.addEventListener("load", () => {
-      setMode("terrain");
-      setActiveButtons();
-      buildPalette();
-      bindUI();
-      resizeCanvas();
-      setStatus(currentSelectionLabel());
-    }, { once:true });
 
-    // in case already cached
-    if(tilesetImg.complete){
-      tilesetImg.dispatchEvent(new Event("load"));
+    if(mode === "terrain"){
+      terrainLayer[idx(tx,ty)] = selectedTerrain;
+      redraw();
+      return;
     }
 
-    window.addEventListener("resize", resizeCanvas);
+    // objects
+    const def = OBJECT_DEFS[selectedObject];
+    const w = def?.w || 1;
+    const h = def?.h || 1;
+
+    // Clamp placement so larger objects always fit
+    const ax = clamp(tx, 0, MAP_COLS - w);
+    const ay = clamp(ty, 0, MAP_ROWS - h);
+
+    // If this would overlap an existing object, remove the topmost one at the anchor cell first
+    // (simple/clean behavior on mobile)
+    const existing = findTopObjectAt(ax, ay);
+    if(existing >= 0) objects.splice(existing, 1);
+
+    objects.push({ id: selectedObject, x: ax, y: ay });
+    redraw();
+  }
+
+  function onPointerDown(ev){
+    if(!ensureContext()) return;
+    ev.preventDefault();
+    isDown = true;
+    const {tx,ty} = eventToTile(ev);
+    applyAt(tx,ty);
+  }
+  function onPointerMove(ev){
+    if(!ensureContext()) return;
+    const {tx,ty} = eventToTile(ev);
+    lastCell = {x: tx, y: ty};
+    if(isDown){
+      ev.preventDefault();
+      applyAt(tx,ty);
+    }else{
+      redraw();
+    }
+  }
+  function onPointerUp(){
+    isDown = false;
+    lastPaintKey = "";
+  }
+
+  // ====== SAVE/LOAD ======
+  function serialize(){
+    return {
+      v: 4,
+      cols: MAP_COLS,
+      rows: MAP_ROWS,
+      biome,
+      terrain: Array.from(terrainLayer),
+      objects: objects.map(o => ({ id: o.id, x: o.x, y: o.y })),
+    };
+  }
+
+  function applyData(data){
+    if(!data || !Array.isArray(data.terrain)) throw new Error("bad data");
+    biome = (data.biome && BIOMES[data.biome]) ? data.biome : "overworld";
+    const t = data.terrain;
+    for(let i=0;i<terrainLayer.length;i++){
+      terrainLayer[i] = (typeof t[i] === "number") ? t[i] : BIOMES[biome].defaultTile;
+    }
+    objects = Array.isArray(data.objects) ? data.objects
+      .filter(o => o && typeof o.id === "number" && typeof o.x === "number" && typeof o.y === "number")
+      .map(o => ({ id: o.id, x: clamp(o.x,0,MAP_COLS-1), y: clamp(o.y,0,MAP_ROWS-1) }))
+      : [];
+    // ensure default selection remains valid
+    selectedTerrain = BIOMES[biome].defaultTile;
+    setActiveButtons();
+    buildPalette();
+    redraw();
+  }
+
+  function saveMap(){
+    const data = serialize();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    alert("Saved ✅");
+  }
+
+  function loadMap(){
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw){ alert("No save found yet."); return; }
+    try{
+      applyData(JSON.parse(raw));
+      alert("Loaded ✅");
+    }catch(e){
+      alert("Load failed: " + (e?.message || "bad JSON"));
+    }
+  }
+
+  async function exportMap(){
+    const json = JSON.stringify(serialize());
+    // try clipboard first
+    try{
+      await navigator.clipboard.writeText(json);
+      alert("Exported ✅ (copied to clipboard)");
+      return;
+    }catch(_e){}
+    prompt("Copy your map JSON:", json);
+  }
+
+  function importMap(){
+    const txt = prompt("Paste map JSON to import:");
+    if(!txt) return;
+    try{
+      const data = JSON.parse(txt);
+      applyData(data);
+      alert("Imported ✅");
+    }catch(e){
+      alert("Import failed: " + (e?.message || "bad JSON"));
+    }
+  }
+
+  function clearMap(){
+    terrainLayer.fill(BIOMES[biome].defaultTile);
+    objects = [];
+    lastCell = null;
+    redraw();
+  }
+
+  // ====== WIRES ======
+  function setMode(next){
+    mode = next;
+    eraser = false;
+    setActiveButtons();
+    buildPalette();
+    redraw();
+  }
+  function setBiome(next){
+    biome = next;
+    selectedTerrain = BIOMES[biome].defaultTile;
+    eraser = false;
+    setActiveButtons();
+    buildPalette();
+    redraw();
+  }
+
+  btnTerrain.addEventListener("click", ()=> setMode("terrain"));
+  btnObjects.addEventListener("click", ()=> setMode("objects"));
+  btnEraser.addEventListener("click", ()=>{
+    eraser = !eraser;
+    setActiveButtons();
+    redraw();
+  });
+
+  btnSave.addEventListener("click", saveMap);
+  btnLoad.addEventListener("click", loadMap);
+  btnExport.addEventListener("click", exportMap);
+  btnImport.addEventListener("click", importMap);
+  btnClear.addEventListener("click", ()=>{
+    if(confirm("Clear map?")) clearMap();
+  });
+
+  btnOverworld.addEventListener("click", ()=> setBiome("overworld"));
+  btnRuins.addEventListener("click", ()=> setBiome("ruins"));
+  btnFrozen.addEventListener("click", ()=> setBiome("frozen"));
+
+  // prevent page scrolling while interacting with canvas
+  canvas.style.touchAction = "none";
+  canvas.addEventListener("pointerdown", onPointerDown, {passive:false});
+  canvas.addEventListener("pointermove", onPointerMove, {passive:false});
+  window.addEventListener("pointerup", onPointerUp);
+
+  // ====== INIT ======
+  function init(){
+    // init terrain to default biome
+    terrainLayer.fill(BIOMES[biome].defaultTile);
+
+    // tileset load
+    if(!tilesetImg.complete){
+      tilesetImg.addEventListener("load", ()=>{
+        sizeCanvas();
+        setActiveButtons();
+        buildPalette();
+        setStatus();
+        redraw();
+      }, { once:true });
+      tilesetImg.addEventListener("error", ()=>{
+        statusEl.textContent = "tileset.png failed to load (check file name + cache).";
+      }, { once:true });
+    }else{
+      sizeCanvas();
+      setActiveButtons();
+      buildPalette();
+      setStatus();
+      redraw();
+    }
+
+    tipEl.textContent = "Tip: drag to paint • buildings can be multi-tile (up to 4×4 later) • eraser removes the active layer";
   }
 
   init();

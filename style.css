@@ -128,14 +128,14 @@ h1 .sub{
 
 .palette{
   display:grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
   gap: 12px;
   justify-items: center;
 }
 
 .tilebtn{
-  width: 110px;
-  max-width: 110px;
+  width: 132px;
+  max-width: 132px;
   background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.03));
   border: 1px solid rgba(255,255,255,.10);
   border-top-color: rgba(255,255,255,.16);
@@ -167,8 +167,8 @@ h1 .sub{
 .tilebtn.active .label{opacity: 1}
 
 .tilepreview{
-  width: 74px;
-  height: 74px;
+  width: 96px;
+  height: 96px;
   image-rendering: pixelated;
   border-radius: 14px;
   border: 1px solid rgba(0,0,0,.35);
@@ -208,6 +208,6 @@ h1 .sub{
 @media (max-width: 380px){
   h1{font-size:1.85rem}
   .btn{min-width: 86px; padding: 11px 14px}
-  .tilebtn{width: 102px; max-width: 102px}
-  .tilepreview{width: 70px; height:70px}
+  .tilebtn{width: 122px; max-width: 122px}
+  .tilepreview{width: 88px; height:88px}
 }
