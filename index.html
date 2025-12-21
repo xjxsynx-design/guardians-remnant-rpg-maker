@@ -2,55 +2,78 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0b0c0f" />
-  <title>Guardians' Remnant — World Editor</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <title>Guardians Remnant — Two Worlds Editor (Foundation)</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header class="top">
-    <h1>Guardians' Remnant<span class="sub">World Editor</span></h1>
-    <div id="status" class="status">Loading…</div>
-  </header>
+<header class="topbar">
+  <div class="brand">
+    <div class="title">Guardians Remnant</div>
+    <div class="subtitle">Two Worlds World Builder — Foundation</div>
+  </div>
 
-  <main class="app" id="app">
-    <section class="panel controls">
-      <div class="row">
-        <button class="btn mode" data-mode="terrain" id="btnTerrain">Terrain</button>
-        <button class="btn mode" data-mode="objects" id="btnObjects">Objects</button>
-        <button class="btn mode" data-mode="eraser"  id="btnEraser">Eraser</button>
-      </div>
-      <div class="row row-tight">
-        <button class="btn" id="btnSave">Save</button>
-        <button class="btn" id="btnLoad">Load</button>
-        <button class="btn" id="btnExport">Export</button>
-        <button class="btn" id="btnImport">Import</button>
-        <button class="btn danger" id="btnClear">Clear</button>
-      </div>
-    </section>
+  <div class="controls">
+    <div class="seg">
+      <button id="worldAncient" class="btn primary">Ancient</button>
+      <button id="worldModern" class="btn">Modern</button>
+    </div>
 
-    <section class="panel palette-panel">
-      <div class="row">
-        <button class="btn biome" data-biome="overworld" id="btnOverworld">Overworld</button>
-        <button class="btn biome" data-biome="ruins" id="btnRuins">Ruins</button>
-        <button class="btn biome" data-biome="frozen" id="btnFrozen">Frozen</button>
-      </div>
+    <div class="seg">
+      <button id="modeTerrain" class="btn primary">Terrain</button>
+      <button id="modeObjects" class="btn">Objects</button>
+      <button id="modeEraser" class="btn danger">Eraser</button>
+    </div>
 
-      <div class="palette-wrap">
-        <div class="palette-title" id="paletteTitle">Tiles</div>
-        <div id="palette" class="palette" aria-label="Tile Palette"></div>
-      </div>
-    </section>
+    <div class="seg">
+      <button id="viewNamed" class="btn primary">Named</button>
+      <button id="viewAll" class="btn">All Tiles</button>
+    </div>
 
-    <section class="panel map-panel">
-      <div class="map-frame">
-        <canvas id="mapCanvas" width="384" height="288" aria-label="Map canvas"></canvas>
-      </div>
-      <div class="tip" id="tip">Tip: drag to paint • two layers (terrain + objects) • eraser removes the active layer</div>
-    </section>
-  </main>
+    <div class="seg">
+      <button data-pal="s" class="btn" id="palS">Pal S</button>
+      <button data-pal="m" class="btn primary" id="palM">Pal M</button>
+      <button data-pal="l" class="btn" id="palL">Pal L</button>
+    </div>
 
-  <img id="tilesetImg" src="tileset.png" alt="" style="display:none" />
-  <script src="script.js"></script>
+    <div class="seg">
+      <button id="btnSave" class="btn">Save</button>
+      <button id="btnLoad" class="btn">Load</button>
+      <button id="btnClear" class="btn">Clear</button>
+    </div>
+  </div>
+</header>
+
+<main class="layout">
+  <aside class="palette">
+    <div class="paletteHeader">
+      <div class="palTitle">Palette</div>
+      <div class="palHint" id="palHint">Loading catalog…</div>
+    </div>
+    <div id="paletteList" class="paletteList"></div>
+  </aside>
+
+  <section class="workspace">
+    <div class="status">
+      <div><span class="k">World:</span> <span id="statusWorld">Ancient</span></div>
+      <div><span class="k">Mode:</span> <span id="statusMode">Terrain</span></div>
+      <div><span class="k">Selected:</span> <span id="statusSel">None</span></div>
+      <div class="spacer"></div>
+      <div class="tiny" id="statusMeta"></div>
+    </div>
+
+    <div class="canvasWrap">
+      <canvas id="map"></canvas>
+      <canvas id="grid"></canvas>
+    </div>
+
+    <div class="tip">
+      <b>Foundation build:</b> tilesets are placeholders with zone labels. This is the locked layout + editor base. Replace art later without remapping.
+    </div>
+  </section>
+</main>
+
+<input id="fileLoad" type="file" accept="application/json" hidden />
+<script src="script.js"></script>
 </body>
 </html>

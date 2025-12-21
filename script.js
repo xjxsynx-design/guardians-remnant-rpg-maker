@@ -1,623 +1,424 @@
+
 (() => {
-  "use strict";
-
-  // ====== CONFIG ======
-  const TILE = 64;             // tileset tile size (px)
-  const TS_COLS = 24;           // tileset columns (256px / 32px)
-  const MAP_COLS = 16;
-  const MAP_ROWS = 12;
-
-  // ====== TILE IDS ======
-  const TERRAIN = {
-    Grass: 0,
-    Dirt:  1,
-    Stone: 2,
-    Moss:  3,
-    Snow:  4,
-    Ice:   5,
+  const TILESET_PATH = {
+    ancient: "assets/tileset_ancient.png",
+    modern: "assets/tileset_modern.png",
   };
 
-  // NOTE: IDs here are "object IDs" (selection + save/load), not necessarily equal to
-  // the tileset tile indices used for rendering multi-tile stamps.
-  const OBJECTS = {
-    // Single-tile objects (their id == tileset tile index)
-    Tree:   16,
-    Pine:   17,
-    Rock:   18,
-    Chest:  19,
-    Pillar: 20,
-    Rubble: 21,
-    Crystal:22,
-
-    // Buildings / props (now MULTI-TILE stamps)
-    House:    23,
-    Shop:     24,
-    Fountain: 25,
-    Cabin:    26,
-    Sign:     27,
-
-    // Wildlife (single tile)
-    Deer: 384,
-    Wolf: 385,
-    Boar: 386,
-    Bear: 387,
-    Bird: 388,
+  const state = {
+    world: "ancient",
+    mode: "terrain", // terrain | objects | eraser
+    view: "named",   // named | all
+    pal: "m",        // s|m|l
+    selectedId: -1,
+    selectedName: "None",
+    catalog: null,
+    tilesetImg: new Image(),
+    tilesetReady: false,
+    mapCols: 28,
+    mapRows: 18,
+    mapTile: 32, // render size on map
+    terrain: [],
+    objects: [],
+    pointerDown: false,
   };
 
-  const BIOMES = {
-    overworld: { name: "Overworld", tiles: [TERRAIN.Grass, TERRAIN.Dirt, TERRAIN.Stone], defaultTile: TERRAIN.Grass },
-    ruins:     { name: "Ruins",     tiles: [TERRAIN.Stone, TERRAIN.Moss, TERRAIN.Dirt], defaultTile: TERRAIN.Stone },
-    frozen:    { name: "Frozen",    tiles: [TERRAIN.Snow, TERRAIN.Ice, TERRAIN.Stone], defaultTile: TERRAIN.Snow  },
-  };
+  const el = (id) => document.getElementById(id);
 
-  // ====== MULTI-TILE OBJECT STAMPS ======
-  // Each stamp entry is a tileset tile index (row-major on the tileset).
-  // Use -1 for transparent "no tile" cells.
-  //
-  // We placed new 2x2 building art into the tileset at indices:
-  // House:    40,41 / 48,49
-  // Shop:     42,43 / 50,51
-  // Fountain: 44,45 / 52,53
-  // Cabin:    46,47 / 54,55
-  const OBJECT_DEFS = {
-    // Single-tile objects: stamp is just the object's id
-    [OBJECTS.Tree]:   { id: OBJECTS.Tree,   label: "Tree",   w: 1, h: 1, stamp: [[16]] },
-    [OBJECTS.Pine]:   { id: OBJECTS.Pine,   label: "Pine",   w: 1, h: 1, stamp: [[17]] },
-    [OBJECTS.Rock]:   { id: OBJECTS.Rock,   label: "Rock",   w: 1, h: 1, stamp: [[18]] },
-    [OBJECTS.Chest]:  { id: OBJECTS.Chest,  label: "Chest",  w: 1, h: 1, stamp: [[19]] },
-    [OBJECTS.Pillar]: { id: OBJECTS.Pillar, label: "Pillar", w: 1, h: 1, stamp: [[20]] },
-    [OBJECTS.Rubble]: { id: OBJECTS.Rubble, label: "Rubble", w: 1, h: 1, stamp: [[21]] },
-    [OBJECTS.Crystal]:{ id: OBJECTS.Crystal,label: "Crystal",w: 1, h: 1, stamp: [[22]] },
+  const map = el("map");
+  const grid = el("grid");
+  const mapCtx = map.getContext("2d");
+  const gridCtx = grid.getContext("2d");
 
-    // Multi-tile buildings (2x2 for now; framework supports up to 4x4)
-    [OBJECTS.House]:    { id: OBJECTS.House,    label: "House",    w: 2, h: 2, stamp: [[40,41],[48,49]] },
-    [OBJECTS.Shop]:     { id: OBJECTS.Shop,     label: "Shop",     w: 2, h: 2, stamp: [[42,43],[50,51]] },
-    [OBJECTS.Fountain]: { id: OBJECTS.Fountain, label: "Fountain", w: 2, h: 2, stamp: [[44,45],[52,53]] },
-    [OBJECTS.Cabin]:    { id: OBJECTS.Cabin,    label: "Cabin",    w: 2, h: 2, stamp: [[46,47],[54,55]] },
+  mapCtx.imageSmoothingEnabled = false;
+  gridCtx.imageSmoothingEnabled = false;
 
-    // Sign is still single-tile for now
-    [OBJECTS.Sign]:     { id: OBJECTS.Sign,     label: "Sign",     w: 1, h: 1, stamp: [[27]] },
-
-    // Wildlife (single)
-    [OBJECTS.Deer]: { id: OBJECTS.Deer, label: "Deer", w:1, h:1, stamp:[[28]] },
-    [OBJECTS.Wolf]: { id: OBJECTS.Wolf, label: "Wolf", w:1, h:1, stamp:[[29]] },
-    [OBJECTS.Boar]: { id: OBJECTS.Boar, label: "Boar", w:1, h:1, stamp:[[30]] },
-    [OBJECTS.Bird]: { id: OBJECTS.Bird, label: "Bird", w:1, h:1, stamp:[[31]] },
-    [OBJECTS.Bear]: { id: OBJECTS.Bear, label: "Bear", w:1, h:1, stamp:[[32]] },
-  };
-
-  const OBJECT_TILE_LIST = [
-    { id: OBJECTS.Tree, label: "Tree" },
-    { id: OBJECTS.Pine, label: "Pine" },
-    { id: OBJECTS.Rock, label: "Rock" },
-    { id: OBJECTS.Deer, label: "Deer" },
-    { id: OBJECTS.Wolf, label: "Wolf" },
-    { id: OBJECTS.Boar, label: "Boar" },
-    { id: OBJECTS.Bird, label: "Bird" },
-    { id: OBJECTS.Bear, label: "Bear" },
-  ];
-
-  const OBJECT_TILE_LIST_2 = [
-    { id: OBJECTS.Chest, label: "Chest" },
-    { id: OBJECTS.House, label: "House" },
-    { id: OBJECTS.Shop, label: "Shop" },
-    { id: OBJECTS.Fountain, label: "Fountain" },
-    { id: OBJECTS.Cabin, label: "Cabin" },
-    { id: OBJECTS.Sign, label: "Sign" },
-    { id: OBJECTS.Pillar, label: "Pillar" },
-    { id: OBJECTS.Rubble, label: "Rubble" },
-    { id: OBJECTS.Crystal, label: "Crystal" },
-  ];
-
-  // ====== DOM ======
-  const statusEl = document.getElementById("status");
-  const paletteTitleEl = document.getElementById("paletteTitle");
-  const paletteEl = document.getElementById("palette");
-  const tipEl = document.getElementById("tip");
-
-  const btnTerrain = document.getElementById("btnTerrain");
-  const btnObjects = document.getElementById("btnObjects");
-  const btnEraser  = document.getElementById("btnEraser");
-  const btnSave    = document.getElementById("btnSave");
-  const btnLoad    = document.getElementById("btnLoad");
-  const btnExport  = document.getElementById("btnExport");
-  const btnImport  = document.getElementById("btnImport");
-  const btnClear   = document.getElementById("btnClear");
-
-  const btnOverworld = document.getElementById("btnOverworld");
-  const btnRuins     = document.getElementById("btnRuins");
-  const btnFrozen    = document.getElementById("btnFrozen");
-
-  const canvas = document.getElementById("mapCanvas");
-  let ctx = null;
-
-  const tilesetImg = document.getElementById("tilesetImg");
-
-  // ====== STATE ======
-  let mode = "terrain"; // "terrain" | "objects"
-  let eraser = false;
-  let biome = "overworld";
-
-  let selectedTerrain = BIOMES[biome].defaultTile;
-  let selectedObject = OBJECTS.Tree;
-
-  // terrain: per-cell tile index
-  const terrainLayer = new Int16Array(MAP_COLS * MAP_ROWS);
-
-  // objects: list of instances {id, x, y}
-  let objects = [];
-
-  let lastCell = null;
-  let isDown = false;
-  let lastPaintKey = "";
-
-  const STORAGE_KEY = "gr_world_v4c_layers_tileset";
-
-  // ====== HELPERS ======
-  const idx = (x,y) => y*MAP_COLS + x;
-
-  function tileSrcRect(tileIndex){
-    const sx = (tileIndex % TS_COLS) * TILE;
-    const sy = Math.floor(tileIndex / TS_COLS) * TILE;
-    return { sx, sy };
-  }
-
-  function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
-
-  function setStatus(){
-    const biomeName = BIOMES[biome].name;
-    const modeLabel = eraser ? "Eraser" : (mode === "terrain" ? "Terrain" : "Objects");
-    const selLabel = eraser ? "" : (mode === "terrain" ? terrainLabel(selectedTerrain) : objectLabel(selectedObject));
-    const txt = selLabel ? `${modeLabel} • ${biomeName} • ${selLabel}` : `${modeLabel} • ${biomeName}`;
-    statusEl.textContent = txt;
-  }
-
-  function terrainLabel(tileId){
-    for(const [k,v] of Object.entries(TERRAIN)){
-      if(v === tileId) return k;
-    }
-    return `Tile ${tileId}`;
-  }
-
-  function objectLabel(objId){
-    return (OBJECT_DEFS[objId]?.label) || `Obj ${objId}`;
-  }
-
-  function setActiveButtons(){
-    btnTerrain.classList.toggle("active", mode === "terrain" && !eraser);
-    btnObjects.classList.toggle("active", mode === "objects" && !eraser);
-    btnEraser.classList.toggle("active", eraser);
-
-    btnOverworld.classList.toggle("active", biome === "overworld");
-    btnRuins.classList.toggle("active", biome === "ruins");
-    btnFrozen.classList.toggle("active", biome === "frozen");
-
-    setStatus();
-  }
-
-  function ensureContext(){
-    if(ctx) return true;
-    // iOS Safari can be picky about 2D context options
-    ctx = canvas.getContext("2d", { alpha: false });
-    if(!ctx) ctx = canvas.getContext("2d");
-    if(!ctx){
-      statusEl.textContent = "Canvas init failed (iOS). Try refresh / cache-bust.";
-      return false;
-    }
-    ctx.imageSmoothingEnabled = false;
-    return true;
-  }
-
-  function sizeCanvas(){
-    canvas.width = MAP_COLS * TILE;
-    canvas.height = MAP_ROWS * TILE;
-    redraw();
-  }
-
-  function drawTile(tileIndex, x, y){
-    if(tileIndex == null || tileIndex < 0) return;
-    const { sx, sy } = tileSrcRect(tileIndex);
-    ctx.drawImage(tilesetImg, sx, sy, TILE, TILE, x*TILE, y*TILE, TILE, TILE);
-  }
-
-  function drawStamp(stamp, x, y){
-    const h = stamp.length;
-    const w = stamp[0].length;
-    for(let dy=0; dy<h; dy++){
-      for(let dx=0; dx<w; dx++){
-        const t = stamp[dy][dx];
-        if(t >= 0) drawTile(t, x+dx, y+dy);
-      }
+  function setActive(btnIds, activeId) {
+    for (const id of btnIds) {
+      const b = el(id);
+      b.classList.toggle("primary", id === activeId);
+      if (b.classList.contains("danger")) continue;
     }
   }
 
-  function objectBounds(obj){
-    const def = OBJECT_DEFS[obj.id];
-    return { x: obj.x, y: obj.y, w: def?.w || 1, h: def?.h || 1 };
+  function setWorld(world) {
+    state.world = world;
+    el("statusWorld").textContent = world === "ancient" ? "Ancient" : "Modern";
+    el("worldAncient").classList.toggle("primary", world === "ancient");
+    el("worldModern").classList.toggle("primary", world === "modern");
+    loadTileset();
+    renderPalette();
+    draw();
   }
 
-  function findTopObjectAt(tx, ty){
-    for(let i=objects.length-1; i>=0; i--){
-      const o = objects[i];
-      const b = objectBounds(o);
-      if(tx >= b.x && tx < b.x+b.w && ty >= b.y && ty < b.y+b.h){
-        return i;
-      }
-    }
-    return -1;
+  function setMode(mode) {
+    state.mode = mode;
+    el("statusMode").textContent = mode[0].toUpperCase() + mode.slice(1);
+    el("modeTerrain").classList.toggle("primary", mode === "terrain");
+    el("modeObjects").classList.toggle("primary", mode === "objects");
+    el("modeEraser").classList.toggle("primary", mode === "eraser");
   }
 
-  // ====== RENDER ======
-  function redraw(){
-    if(!ensureContext()) return;
-    if(!tilesetImg.complete) return;
-
-    ctx.clearRect(0,0,canvas.width, canvas.height);
-
-    // background
-    ctx.fillStyle = "rgba(0,0,0,0.15)";
-    ctx.fillRect(0,0,canvas.width, canvas.height);
-
-    // terrain
-    for(let y=0;y<MAP_ROWS;y++){
-      for(let x=0;x<MAP_COLS;x++){
-        drawTile(terrainLayer[idx(x,y)], x, y);
-      }
-    }
-
-    // objects (instances)
-    for(const o of objects){
-      const def = OBJECT_DEFS[o.id];
-      if(!def) continue;
-      drawStamp(def.stamp, o.x, o.y);
-    }
-
-    // gridlines (subtle ALTTP-ish)
-    const w = MAP_COLS*TILE, h = MAP_ROWS*TILE;
-    ctx.strokeStyle = "rgba(0,0,0,0.35)";
-    ctx.lineWidth = 1;
-
-    for(let gx=0; gx<=MAP_COLS; gx++){
-      ctx.globalAlpha = (gx%2===0) ? 0.30 : 0.18;
-      ctx.beginPath();
-      ctx.moveTo(gx*TILE+0.5, 0);
-      ctx.lineTo(gx*TILE+0.5, h);
-      ctx.stroke();
-    }
-    for(let gy=0; gy<=MAP_ROWS; gy++){
-      ctx.globalAlpha = (gy%2===0) ? 0.30 : 0.18;
-      ctx.beginPath();
-      ctx.moveTo(0, gy*TILE+0.5);
-      ctx.lineTo(w, gy*TILE+0.5);
-      ctx.stroke();
-    }
-    ctx.globalAlpha = 1;
-
-    // cursor / preview
-    if(lastCell){
-      const {x,y} = lastCell;
-      ctx.save();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = "rgba(201,164,65,0.95)";
-      ctx.shadowColor = "rgba(0,0,0,0.55)";
-      ctx.shadowBlur = 6;
-
-      if(mode === "objects" && !eraser){
-        const def = OBJECT_DEFS[selectedObject];
-        if(def){
-          ctx.strokeRect(x*TILE+1, y*TILE+1, def.w*TILE-2, def.h*TILE-2);
-        }else{
-          ctx.strokeRect(x*TILE+1, y*TILE+1, TILE-2, TILE-2);
-        }
-      }else{
-        ctx.strokeRect(x*TILE+1, y*TILE+1, TILE-2, TILE-2);
-      }
-      ctx.restore();
-    }
+  function setView(view) {
+    state.view = view;
+    el("viewNamed").classList.toggle("primary", view === "named");
+    el("viewAll").classList.toggle("primary", view === "all");
+    renderPalette();
   }
 
-  // ====== PALETTE ======
-  function buildPalette(){
-    paletteEl.innerHTML = "";
+  function setPaletteSize(pal) {
+    state.pal = pal;
+    el("palS").classList.toggle("primary", pal === "s");
+    el("palM").classList.toggle("primary", pal === "m");
+    el("palL").classList.toggle("primary", pal === "l");
+    renderPalette();
+  }
 
-    const makeBtn = ({id, label}, selected) => {
-      const def = OBJECT_DEFS[id];
+  function tileThumbSize() {
+    return state.pal === "s" ? 36 : state.pal === "m" ? 48 : 64;
+  }
 
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "tilebtn" + (selected ? " active" : "");
-      btn.dataset.tileId = String(id);
+  function initMap() {
+    const n = state.mapCols * state.mapRows;
+    state.terrain = new Array(n).fill(-1);
+    state.objects = new Array(n).fill(-1);
 
-      const c = document.createElement("canvas");
-      c.className = "tilepreview";
-      const pw = (def?.w || 1);
-      const ph = (def?.h || 1);
-      // Draw at native pixels; CSS will scale
-      c.width = TILE * pw;
-      c.height = TILE * ph;
+    // default select first shared terrain
+    const first = state.catalog?.sharedTerrain?.[0];
+    if (first) selectTile(first.id, first.name);
+  }
 
-      const cctx = c.getContext("2d");
-      cctx.imageSmoothingEnabled = false;
-      cctx.clearRect(0,0,c.width,c.height);
-
-      if(mode === "objects"){
-        // draw stamp preview
-        const stamp = def?.stamp || [[id]];
-        for(let dy=0; dy<stamp.length; dy++){
-          for(let dx=0; dx<stamp[0].length; dx++){
-            const t = stamp[dy][dx];
-            if(t < 0) continue;
-            const {sx,sy} = tileSrcRect(t);
-            cctx.drawImage(tilesetImg, sx, sy, TILE, TILE, dx*TILE, dy*TILE, TILE, TILE);
-          }
-        }
-      }else{
-        const {sx,sy} = tileSrcRect(id);
-        cctx.drawImage(tilesetImg, sx, sy, TILE, TILE, 0, 0, TILE, TILE);
-      }
-
-      const sp = document.createElement("div");
-      sp.className = "label";
-      sp.textContent = label;
-
-      btn.appendChild(c);
-      btn.appendChild(sp);
-
-      btn.addEventListener("click", () => {
-        if(mode === "objects"){
-          selectedObject = id;
-        }else{
-          selectedTerrain = id;
-        }
-        eraser = false;
-        setActiveButtons();
-        buildPalette();
-        redraw();
+  function loadCatalog() {
+    return fetch("catalog.json")
+      .then(r => r.json())
+      .then(cat => {
+        state.catalog = cat;
+        el("statusMeta").textContent = `${cat.meta.cols} cols • ${cat.meta.rows} rows • tileset ${cat.meta.tileSize}px • map tile ${state.mapTile}px`;
+        el("palHint").textContent = "Named view shows only catalog entries for the selected world. All Tiles shows raw IDs.";
+        initMap();
+        loadTileset();
+        renderPalette();
+        draw();
+      })
+      .catch(err => {
+        console.error(err);
+        el("palHint").textContent = "Failed to load catalog.json";
       });
+  }
 
-      return btn;
+  function loadTileset() {
+    state.tilesetReady = false;
+    state.tilesetImg = new Image();
+    state.tilesetImg.onload = () => {
+      state.tilesetReady = true;
+      draw();
+      renderPalette(); // refresh thumbs
     };
+    state.tilesetImg.src = `${TILESET_PATH[state.world]}?v=${Date.now()}`;
+  }
 
-    if(mode === "objects"){
-      paletteTitleEl.textContent = "Objects";
-      const list = [...OBJECT_TILE_LIST, ...OBJECT_TILE_LIST_2];
-      for(const o of list){
-        paletteEl.appendChild(makeBtn(o, o.id === selectedObject));
+  function selectTile(id, name) {
+    state.selectedId = id;
+    state.selectedName = name || `Tile ${String(id).padStart(3,"0")}`;
+    el("statusSel").textContent = `${state.selectedName} (#${state.selectedId})`;
+    // update active buttons
+    document.querySelectorAll(".tileBtn").forEach(b => {
+      b.classList.toggle("active", Number(b.dataset.id) === state.selectedId);
+    });
+  }
+
+  function entriesForWorldNamed() {
+    const c = state.catalog;
+    const world = state.world;
+    const groups = [];
+
+    groups.push({ title: "Shared Terrain", items: c.sharedTerrain.map(x => ({...x, world:"both"})) });
+
+    if (world === "ancient") {
+      groups.push({ title: "Ancient Structures", items: c.ancient.structures.map(x => ({...x, world:"ancient"})) });
+      groups.push({ title: "Ancient Objects", items: c.ancient.objects.map(x => ({...x, world:"ancient"})) });
+      groups.push({ title: "Ancient Animals", items: c.ancient.animals.map(x => ({...x, world:"ancient"})) });
+      groups.push({ title: "Transportation (Ancient)", items: c.ancient.transport.map(x => ({...x, world:"ancient"})) });
+    } else {
+      groups.push({ title: "Modern Structures", items: c.modern.structures.map(x => ({...x, world:"modern"})) });
+      groups.push({ title: "Modern Objects", items: c.modern.objects.map(x => ({...x, world:"modern"})) });
+      groups.push({ title: "Vehicles (Modern)", items: c.modern.vehicles.map(x => ({...x, world:"modern"})) });
+    }
+    return groups;
+  }
+
+  function entriesAllTiles() {
+    const c = state.catalog;
+    const zones = c.zones.filter(z => z.name !== "reserved");
+    const groups = [];
+    for (const z of zones) {
+      const start = z.startRow * c.meta.cols;
+      const end = z.endRow * c.meta.cols;
+      const items = [];
+      for (let id=start; id<end; id++) {
+        items.push({ id, name: `Tile ${String(id).padStart(3,"0")}` });
       }
-    }else{
-      paletteTitleEl.textContent = "Tiles";
-      const tiles = BIOMES[biome].tiles;
-      for(const t of tiles){
-        paletteEl.appendChild(makeBtn({id: t, label: terrainLabel(t)}, t === selectedTerrain));
+      groups.push({ title: z.name, items });
+    }
+    return groups;
+  }
+
+  function renderPalette() {
+    if (!state.catalog) return;
+    const pal = el("paletteList");
+    pal.innerHTML = "";
+    const groups = state.view === "named" ? entriesForWorldNamed() : entriesAllTiles();
+
+    const thumb = tileThumbSize();
+    // update thumb CSS size
+    const style = document.createElement("style");
+    style.textContent = `.thumb{width:${thumb}px;height:${thumb}px}`;
+    pal.appendChild(style);
+
+    for (const g of groups) {
+      const wrap = document.createElement("div");
+      wrap.className = "group";
+      const t = document.createElement("div");
+      t.className = "groupTitle";
+      t.textContent = g.title;
+      wrap.appendChild(t);
+
+      const tiles = document.createElement("div");
+      tiles.className = "tiles";
+
+      for (const item of g.items) {
+        const btn = document.createElement("div");
+        btn.className = "tileBtn" + (item.id === state.selectedId ? " active" : "");
+        btn.dataset.id = item.id;
+
+        const img = document.createElement("img");
+        img.className = "thumb";
+        img.alt = item.name;
+        img.src = thumbDataURL(item.id, thumb, thumb);
+
+        const lab = document.createElement("div");
+        lab.className = "tileLabel";
+        lab.textContent = item.name;
+
+        btn.appendChild(img);
+        btn.appendChild(lab);
+        btn.addEventListener("click", () => selectTile(item.id, item.name));
+        tiles.appendChild(btn);
+      }
+
+      wrap.appendChild(tiles);
+      pal.appendChild(wrap);
+    }
+  }
+
+  function idToSrcRect(id) {
+    const c = state.catalog.meta.cols;
+    const ts = state.catalog.meta.tileSize;
+    const sx = (id % c) * ts;
+    const sy = Math.floor(id / c) * ts;
+    return {sx, sy, sw: ts, sh: ts};
+  }
+
+  function thumbDataURL(id, w, h) {
+    // Use an offscreen canvas to draw the correct tile.
+    const cvs = document.createElement("canvas");
+    cvs.width = w; cvs.height = h;
+    const ctx = cvs.getContext("2d");
+    ctx.imageSmoothingEnabled = false;
+    ctx.clearRect(0,0,w,h);
+
+    if (!state.tilesetReady) {
+      // placeholder
+      ctx.fillStyle = "#0a0d12";
+      ctx.fillRect(0,0,w,h);
+      ctx.fillStyle = "rgba(215,179,90,.55)";
+      ctx.fillRect(0,0,w,3);
+      return cvs.toDataURL();
+    }
+
+    const r = idToSrcRect(id);
+    ctx.drawImage(state.tilesetImg, r.sx, r.sy, r.sw, r.sh, 0, 0, w, h);
+    return cvs.toDataURL();
+  }
+
+  function resizeCanvases() {
+    const w = state.mapCols * state.mapTile;
+    const h = state.mapRows * state.mapTile;
+    map.width = w; map.height = h;
+    grid.width = w; grid.height = h;
+
+    // CSS scale to nearest integer multiple for crispness on iOS
+    const maxW = Math.min(window.innerWidth - 40, w);
+    const scale = Math.max(1, Math.floor(maxW / w));
+    map.style.width = (w * scale) + "px";
+    map.style.height = (h * scale) + "px";
+    grid.style.width = (w * scale) + "px";
+    grid.style.height = (h * scale) + "px";
+
+    drawGrid();
+    draw();
+  }
+
+  function drawGrid() {
+    const w = grid.width, h = grid.height;
+    gridCtx.clearRect(0,0,w,h);
+    gridCtx.strokeStyle = "rgba(215,179,90,.25)";
+    gridCtx.lineWidth = 1;
+
+    for (let x=0; x<=w; x+=state.mapTile) {
+      gridCtx.beginPath();
+      gridCtx.moveTo(x+0.5,0);
+      gridCtx.lineTo(x+0.5,h);
+      gridCtx.stroke();
+    }
+    for (let y=0; y<=h; y+=state.mapTile) {
+      gridCtx.beginPath();
+      gridCtx.moveTo(0,y+0.5);
+      gridCtx.lineTo(w,y+0.5);
+      gridCtx.stroke();
+    }
+  }
+
+  function drawLayer(arr) {
+    if (!state.tilesetReady) return;
+    for (let r=0; r<state.mapRows; r++) {
+      for (let c=0; c<state.mapCols; c++) {
+        const idx = r*state.mapCols + c;
+        const id = arr[idx];
+        if (id < 0) continue;
+        const src = idToSrcRect(id);
+        const dx = c*state.mapTile;
+        const dy = r*state.mapTile;
+        mapCtx.drawImage(state.tilesetImg, src.sx, src.sy, src.sw, src.sh, dx, dy, state.mapTile, state.mapTile);
       }
     }
   }
 
-  // ====== INPUT ======
-  function eventToTile(ev){
-    const r = canvas.getBoundingClientRect();
-    const sx = canvas.width / r.width;
-    const sy = canvas.height / r.height;
-    const px = (ev.clientX - r.left) * sx;
-    const py = (ev.clientY - r.top)  * sy;
-    const tx = clamp(Math.floor(px / TILE), 0, MAP_COLS-1);
-    const ty = clamp(Math.floor(py / TILE), 0, MAP_ROWS-1);
-    return { tx, ty };
+  function draw() {
+    mapCtx.clearRect(0,0,map.width,map.height);
+    // background
+    mapCtx.fillStyle = "#070a0f";
+    mapCtx.fillRect(0,0,map.width,map.height);
+
+    drawLayer(state.terrain);
+    drawLayer(state.objects);
   }
 
-  function applyAt(tx, ty){
-    lastCell = {x: tx, y: ty};
+  function posToIndex(clientX, clientY) {
+    const rect = map.getBoundingClientRect();
+    const x = (clientX - rect.left) * (map.width / rect.width);
+    const y = (clientY - rect.top) * (map.height / rect.height);
+    const c = Math.floor(x / state.mapTile);
+    const r = Math.floor(y / state.mapTile);
+    if (c < 0 || r < 0 || c >= state.mapCols || r >= state.mapRows) return -1;
+    return r*state.mapCols + c;
+  }
 
-    // prevent spamming same cell while dragging
-    const key = `${mode}|${eraser?"E":"P"}|${biome}|${tx},${ty}|${mode==="terrain"?selectedTerrain:selectedObject}`;
-    if(key === lastPaintKey) { redraw(); return; }
-    lastPaintKey = key;
-
-    if(eraser){
-      if(mode === "terrain"){
-        terrainLayer[idx(tx,ty)] = BIOMES[biome].defaultTile;
-      }else{
-        const i = findTopObjectAt(tx,ty);
-        if(i >= 0) objects.splice(i,1);
-      }
-      redraw();
+  function paintAt(idx) {
+    if (idx < 0) return;
+    if (state.mode === "eraser") {
+      // erase current layer based on last non-eraser mode? keep simple: erase both if eraser
+      state.terrain[idx] = -1;
+      state.objects[idx] = -1;
       return;
     }
-
-    if(mode === "terrain"){
-      terrainLayer[idx(tx,ty)] = selectedTerrain;
-      redraw();
-      return;
-    }
-
-    // objects
-    const def = OBJECT_DEFS[selectedObject];
-    const w = def?.w || 1;
-    const h = def?.h || 1;
-
-    // Clamp placement so larger objects always fit
-    const ax = clamp(tx, 0, MAP_COLS - w);
-    const ay = clamp(ty, 0, MAP_ROWS - h);
-
-    // If this would overlap an existing object, remove the topmost one at the anchor cell first
-    // (simple/clean behavior on mobile)
-    const existing = findTopObjectAt(ax, ay);
-    if(existing >= 0) objects.splice(existing, 1);
-
-    objects.push({ id: selectedObject, x: ax, y: ay });
-    redraw();
+    if (state.selectedId < 0) return;
+    if (state.mode === "terrain") state.terrain[idx] = state.selectedId;
+    if (state.mode === "objects") state.objects[idx] = state.selectedId;
   }
 
-  function onPointerDown(ev){
-    if(!ensureContext()) return;
-    ev.preventDefault();
-    isDown = true;
-    const {tx,ty} = eventToTile(ev);
-    applyAt(tx,ty);
+  function onPointerDown(e) {
+    state.pointerDown = true;
+    const idx = posToIndex(e.clientX, e.clientY);
+    paintAt(idx);
+    draw();
   }
-  function onPointerMove(ev){
-    if(!ensureContext()) return;
-    const {tx,ty} = eventToTile(ev);
-    lastCell = {x: tx, y: ty};
-    if(isDown){
-      ev.preventDefault();
-      applyAt(tx,ty);
-    }else{
-      redraw();
-    }
+  function onPointerMove(e) {
+    if (!state.pointerDown) return;
+    const idx = posToIndex(e.clientX, e.clientY);
+    paintAt(idx);
+    draw();
   }
-  function onPointerUp(){
-    isDown = false;
-    lastPaintKey = "";
-  }
+  function onPointerUp() { state.pointerDown = false; }
 
-  // ====== SAVE/LOAD ======
-  function serialize(){
-    return {
-      v: 4,
-      cols: MAP_COLS,
-      rows: MAP_ROWS,
-      biome,
-      terrain: Array.from(terrainLayer),
-      objects: objects.map(o => ({ id: o.id, x: o.x, y: o.y })),
+  function saveJSON() {
+    const data = {
+      v: 1,
+      meta: { cols: state.mapCols, rows: state.mapRows },
+      world: state.world,
+      terrain: state.terrain,
+      objects: state.objects
     };
+    const blob = new Blob([JSON.stringify(data)], {type:"application/json"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "guardians_remnant_map.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
   }
 
-  function applyData(data){
-    if(!data || !Array.isArray(data.terrain)) throw new Error("bad data");
-    biome = (data.biome && BIOMES[data.biome]) ? data.biome : "overworld";
-    const t = data.terrain;
-    for(let i=0;i<terrainLayer.length;i++){
-      terrainLayer[i] = (typeof t[i] === "number") ? t[i] : BIOMES[biome].defaultTile;
-    }
-    objects = Array.isArray(data.objects) ? data.objects
-      .filter(o => o && typeof o.id === "number" && typeof o.x === "number" && typeof o.y === "number")
-      .map(o => ({ id: o.id, x: clamp(o.x,0,MAP_COLS-1), y: clamp(o.y,0,MAP_ROWS-1) }))
-      : [];
-    // ensure default selection remains valid
-    selectedTerrain = BIOMES[biome].defaultTile;
-    setActiveButtons();
-    buildPalette();
-    redraw();
+  function loadJSONFile(file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result);
+        if (!data?.meta) throw new Error("Invalid map");
+        if (data.meta.cols !== state.mapCols || data.meta.rows !== state.mapRows) {
+          alert("Map size mismatch for this foundation build.");
+          return;
+        }
+        state.terrain = data.terrain || state.terrain;
+        state.objects = data.objects || state.objects;
+        draw();
+      } catch (e) {
+        alert("Could not load map JSON.");
+        console.error(e);
+      }
+    };
+    reader.readAsText(file);
   }
 
-  function saveMap(){
-    const data = serialize();
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    alert("Saved ✅");
+  function clearMap() {
+    if (!confirm("Clear the map?")) return;
+    initMap();
+    draw();
   }
 
-  function loadMap(){
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(!raw){ alert("No save found yet."); return; }
-    try{
-      applyData(JSON.parse(raw));
-      alert("Loaded ✅");
-    }catch(e){
-      alert("Load failed: " + (e?.message || "bad JSON"));
-    }
+  // wire UI
+  el("worldAncient").addEventListener("click", () => setWorld("ancient"));
+  el("worldModern").addEventListener("click", () => setWorld("modern"));
+
+  el("modeTerrain").addEventListener("click", () => setMode("terrain"));
+  el("modeObjects").addEventListener("click", () => setMode("objects"));
+  el("modeEraser").addEventListener("click", () => setMode("eraser"));
+
+  el("viewNamed").addEventListener("click", () => setView("named"));
+  el("viewAll").addEventListener("click", () => setView("all"));
+
+  for (const b of [el("palS"), el("palM"), el("palL")]) {
+    b.addEventListener("click", () => setPaletteSize(b.dataset.pal));
   }
 
-  async function exportMap(){
-    const json = JSON.stringify(serialize());
-    // try clipboard first
-    try{
-      await navigator.clipboard.writeText(json);
-      alert("Exported ✅ (copied to clipboard)");
-      return;
-    }catch(_e){}
-    prompt("Copy your map JSON:", json);
-  }
-
-  function importMap(){
-    const txt = prompt("Paste map JSON to import:");
-    if(!txt) return;
-    try{
-      const data = JSON.parse(txt);
-      applyData(data);
-      alert("Imported ✅");
-    }catch(e){
-      alert("Import failed: " + (e?.message || "bad JSON"));
-    }
-  }
-
-  function clearMap(){
-    terrainLayer.fill(BIOMES[biome].defaultTile);
-    objects = [];
-    lastCell = null;
-    redraw();
-  }
-
-  // ====== WIRES ======
-  function setMode(next){
-    mode = next;
-    eraser = false;
-    setActiveButtons();
-    buildPalette();
-    redraw();
-  }
-  function setBiome(next){
-    biome = next;
-    selectedTerrain = BIOMES[biome].defaultTile;
-    eraser = false;
-    setActiveButtons();
-    buildPalette();
-    redraw();
-  }
-
-  btnTerrain.addEventListener("click", ()=> setMode("terrain"));
-  btnObjects.addEventListener("click", ()=> setMode("objects"));
-  btnEraser.addEventListener("click", ()=>{
-    eraser = !eraser;
-    setActiveButtons();
-    redraw();
+  el("btnSave").addEventListener("click", saveJSON);
+  el("btnLoad").addEventListener("click", () => el("fileLoad").click());
+  el("fileLoad").addEventListener("change", (e) => {
+    const f = e.target.files?.[0];
+    if (f) loadJSONFile(f);
+    e.target.value = "";
   });
+  el("btnClear").addEventListener("click", clearMap);
 
-  btnSave.addEventListener("click", saveMap);
-  btnLoad.addEventListener("click", loadMap);
-  btnExport.addEventListener("click", exportMap);
-  btnImport.addEventListener("click", importMap);
-  btnClear.addEventListener("click", ()=>{
-    if(confirm("Clear map?")) clearMap();
-  });
-
-  btnOverworld.addEventListener("click", ()=> setBiome("overworld"));
-  btnRuins.addEventListener("click", ()=> setBiome("ruins"));
-  btnFrozen.addEventListener("click", ()=> setBiome("frozen"));
-
-  // prevent page scrolling while interacting with canvas
-  canvas.style.touchAction = "none";
-  canvas.addEventListener("pointerdown", onPointerDown, {passive:false});
-  canvas.addEventListener("pointermove", onPointerMove, {passive:false});
+  // canvas input
+  map.addEventListener("pointerdown", onPointerDown);
+  map.addEventListener("pointermove", onPointerMove);
   window.addEventListener("pointerup", onPointerUp);
+  window.addEventListener("resize", resizeCanvases);
 
-  // ====== INIT ======
-  function init(){
-    // init terrain to default biome
-    terrainLayer.fill(BIOMES[biome].defaultTile);
-
-    // tileset load
-    if(!tilesetImg.complete){
-      tilesetImg.addEventListener("load", ()=>{
-        sizeCanvas();
-        setActiveButtons();
-        buildPalette();
-        setStatus();
-        redraw();
-      }, { once:true });
-      tilesetImg.addEventListener("error", ()=>{
-        statusEl.textContent = "tileset.png failed to load (check file name + cache).";
-      }, { once:true });
-    }else{
-      sizeCanvas();
-      setActiveButtons();
-      buildPalette();
-      setStatus();
-      redraw();
-    }
-
-    tipEl.textContent = "Tip: drag to paint • buildings can be multi-tile (up to 4×4 later) • eraser removes the active layer";
-  }
-
-  init();
+  // boot
+  setMode("terrain");
+  setPaletteSize("m");
+  setView("named");
+  loadCatalog().then(() => {
+    resizeCanvases();
+  });
 })();
