@@ -42,10 +42,17 @@ function buildMap() {
 
 function buildPalette() {
   palette.innerHTML = "";
-  catalog[currentWorld].forEach(tile => {
+  catalog[currentWorld].forEach((tile, index) => {
     const el = document.createElement("div");
     el.className = "palette-tile";
     el.title = tile.label;
+
+    el.style.backgroundImage =
+      `url(assets/tileset_${currentWorld}.png)`;
+
+    el.style.backgroundSize = "512px 512px"; // temporary
+    el.style.backgroundPosition = `0px 0px`;
+
     el.addEventListener("click", () => {
       document
         .querySelectorAll(".palette-tile")
@@ -53,6 +60,10 @@ function buildPalette() {
       el.classList.add("active");
       currentTile = tile;
     });
+
+    palette.appendChild(el);
+  });
+});
     palette.appendChild(el);
   });
 }
